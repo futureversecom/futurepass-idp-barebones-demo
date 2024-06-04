@@ -5,6 +5,13 @@ const identityProviderUri = 'https://login.futureverse.dev' // .dev -> DEV, .clo
 const authorizationEndpoint = `${identityProviderUri}/auth`
 const tokenEndpoint = `${identityProviderUri}/token`
 
+if (window.location.pathname === '/callback') {
+  displayAuthorizationCode()
+  handleCallback()
+}
+
+document.getElementById('login-button')!.addEventListener('click', login)
+
 async function login() {
   console.log('login func')
   const { codeVerifier, codeChallenge } =
@@ -46,10 +53,7 @@ async function handleCallback() {
     throw new Error('Missing code or state in the callback')
   }
 
-  const savedState = localStorage.getItem('state')
-  if (state !== savedState) {
-    throw new Error('Invalid state (CSRF protection)')
-  }
+  verifyState(state)
 
   const codeVerifier = localStorage.getItem('code_verifier')
   const body = new URLSearchParams({
@@ -75,49 +79,52 @@ async function handleCallback() {
     throw new Error('Invalid JWT token')
   }
 
+  verifyNonce(decodedIdToken.payload.nonce)
+
+  displayTokenResponse(tokenEndpointResponse)
+  displayDecodedIdToken(decodedIdToken)
+}
+
+function verifyState(state: string) {
+  const savedState = localStorage.getItem('state')
+  if (state !== savedState) {
+    throw new Error('Invalid state (CSRF protection)')
+  }
+}
+
+function verifyNonce(nonce: string) {
   const savedNonce = localStorage.getItem('nonce')
-  if (decodedIdToken.payload.nonce !== savedNonce) {
+  if (nonce !== savedNonce) {
     throw new Error('Invalid nonce (replay protection)')
   }
-
-  document.getElementById('token-response')!.innerText = JSON.stringify(
-    tokenEndpointResponse,
-    null,
-    2
-  )
-  document.getElementById('id-token-decoded')!.innerText = JSON.stringify(
-    decodedIdToken,
-    null,
-    2
-  )
 }
 
 function displayAuthorizationCode() {
   const params = new URLSearchParams(window.location.search)
   const code = params.get('code')
 
-  if (!code) {
-    return
+  if (code) {
+    document.getElementById('authorization-code')!.innerHTML = code
   }
-
-  document.getElementById('authorization-code')!.innerHTML = code
 }
 
-if (window.location.pathname === '/callback') {
-  displayAuthorizationCode()
-  handleCallback()
+function displayTokenResponse(response: any) {
+  document.getElementById('token-response')!.innerText = JSON.stringify(
+    response,
+    null,
+    2
+  )
 }
 
-document.getElementById('login-button')!.addEventListener('click', login)
-
-// ***** HELPERS ******
-
-function base64UrlDecode(str: string) {
-  str = str.replace(/-/g, '+').replace(/_/g, '/')
-  const padding = '='.repeat((4 - (str.length % 4)) % 4)
-  const base64 = str + padding
-  return atob(base64)
+function displayDecodedIdToken(decodedToken: any) {
+  document.getElementById('id-token-decoded')!.innerText = JSON.stringify(
+    decodedToken,
+    null,
+    2
+  )
 }
+
+/* HELPERS */
 
 function parseJwt(token: string) {
   const [header, payload, signature] = token.split('.')
@@ -145,14 +152,6 @@ function generateRandomString(length: number) {
   return result
 }
 
-function base64UrlEncode(str: string) {
-  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function sha256(buffer: ArrayBuffer) {
-  return crypto.subtle.digest('SHA-256', buffer)
-}
-
 async function generateCodeVerifierAndChallenge() {
   const codeVerifier = generateRandomString(128)
   const buffer = new TextEncoder().encode(codeVerifier)
@@ -161,4 +160,19 @@ async function generateCodeVerifierAndChallenge() {
     String.fromCharCode(...new Uint8Array(hashed))
   )
   return { codeVerifier, codeChallenge }
+}
+
+function sha256(buffer: ArrayBuffer) {
+  return crypto.subtle.digest('SHA-256', buffer)
+}
+
+function base64UrlEncode(str: string) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function base64UrlDecode(str: string) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/')
+  const padding = '='.repeat((4 - (str.length % 4)) % 4)
+  const base64 = str + padding
+  return atob(base64)
 }
