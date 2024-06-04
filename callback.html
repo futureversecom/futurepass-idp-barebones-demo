@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FuturePass IDP Demo Callback</title>
+    <style>
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      h1 {
+        color: #ff9800;
+        text-align: center;
+      }
+      div {
+        margin: 10px 0;
+      }
+      #authorization-code,
+      #token-response,
+      #id-token-decoded {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        padding: 10px;
+        border-radius: 5px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FuturePass Identity Provider Barebones Demo Callback Page</h1>
+    <div>
+      <div>Authorization code retrieved from the /auth endpoint:</div>
+      <div id="authorization-code"></div>
+    </div>
+    <div>
+      This code is exchanged for ID, Access and Refresh tokens by sending it to
+      the /token endpoint:
+    </div>
+    <div>
+      <div>/token endpoint response:</div>
+      <div id="token-response"></div>
+    </div>
+    <div>
+      The Access and Refresh tokens are opaque and understandable only by the
+      FuturePass services, however the ID Token is a JWT and can be decoded to
+      retrieve useful information about the user:
+    </div>
+    <div id="id-token-decoded"></div>
+
+    <script src="./dist/index.js"></script>
+  </body>
+</html>

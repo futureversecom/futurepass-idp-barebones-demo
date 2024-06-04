@@ -1,0 +1,19 @@
+{
+  "name": "futurepass-idp-barebones-demo",
+  "version": "1.0.0",
+  "description": "A demo TypeScript app for FuturePass Identity Provider authentication.",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"tsc-watch --onSuccess \\\"serve .\\\"\""
+  },
+  "keywords": [],
+  "author": "Chris Czurylo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
+    "concurrently": "^8.2.2",
+    "serve": "^14.2.3",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.4.5"
+  }
+}
