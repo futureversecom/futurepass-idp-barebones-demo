@@ -2,12 +2,14 @@ Sure! Here's the guide in Markdown format:
 
 # FuturePass Identity Provider Interaction Guide
 
-This guide explains how to use the FuturePass Identity Provider (IDP) to authenticate users in your applications. It covers setting up a client, configuring authentication requests, handling responses, and decoding tokens.
+This guide explains how to use the FuturePass Identity Provider (IDP) to authenticate users in your applications using the API directly without any of the Futureverse SDKs. It covers registering your experience, configuring authentication requests, handling responses, and decoding tokens.
+
+**Note:** This demo's goal is simplicity so do not depend on the helper functions used in the code to generate random strings, generate sha256, decode JWT and so on. These are not officially provided by Futureverse and here only for explanation purposes. You should use libraries which securely process data or extensively test your own implementation for edge cases.
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Setting Up a Client](#setting-up-a-client)
+2. [Registering Your Experience](#registering-your-experience)
 3. [Initiating Authentication](#initiating-authentication)
 4. [Handling the Callback](#handling-the-callback)
 5. [Decoding Tokens](#decoding-tokens)
@@ -16,17 +18,22 @@ This guide explains how to use the FuturePass Identity Provider (IDP) to authent
 
 ## Overview
 
-The FuturePass IDP supports OpenID Connect (OIDC), an identity layer on top of OAuth 2.0, which allows clients to verify the identity of the end-user. This guide will help you understand how to integrate with the FuturePass IDP.
+Before using `FutureverseProvider` container you will need to register an OAuth2 client with the Futureverse Identity Provider using the Manage Clients Console:
 
-## Setting Up a Client
+- **Production:** https://login.futureverse.app/manageclients
+- **Development / Staging:** https://login.futureverse.cloud/manageclients
+- **Audit (Canary):** https://login.futureverse.kiwi/manageclients
 
-1. **Register a Client:**
+You will need to provide two arguments:
 
-   - Visit the FuturePass management portal and register your application.
-   - Obtain your `client_id` and configure your `redirect_uri`.
+- **Client Name:** the name of your application (e.g. `futureverse-experience-demo`). Don’t use any characters other than alphanumeric, `-` and `_`. This does not have to be unique, you can register again with the same name and you will receive a fresh set of credentials.
+- **Redirect URLs:** The URL in your application to redirect to after a successful login. Please make sure to include protocol in the URL (`http` for development, `https` for production). You can provide multiple URLs by separating them with a comma. This may be useful if e.g. you’d like to register [localhost](http://localhost) for local development and a deployed URL for your staging environment. For example: `[http://localhost:3000/](http://localhost:3000/login)home,https://*-demo[.preview.com](http://futureverse.vercel.com/)/home,[https://futureverse-experience-demo.staging.com/home](https://identity-dashboard.futureverse.cloud/)` would register localhost for local development, a wildcarded preview URL for dynamic deployments and a staging URL.
 
-2. **Configure Redirect URI:**
-   - Ensure your redirect URI is set correctly in the management portal. This is the URI to which the IDP will send users after they authenticate.
+**Note:** wildcards in Redirect URLs are only available when registering using the **Development** portal listed above. When registering your app for production you need to provide full Redirect URLs.
+
+Upon successful registration, you’ll be presented with a Client ID, Name and an Access Token. Make sure to save these. You will need the Client ID and the Redirect URL in your application to configure the `FutureverseProvider`. Treat them as any other secrets in your application (so don’t commit them with your code!).
+
+Experience Name and Access Token are used to view and edit this registration, they’re not required in the codebase.
 
 ## Initiating Authentication
 
@@ -69,14 +76,14 @@ window.location.href = url
 | `response_type`         | Specifies the type of response. For authorization code flow, use `code`.                               |
 | `client_id`             | The client ID you obtained during client registration.                                                 |
 | `redirect_uri`          | The URI to which the response will be sent. It must match the redirect URI registered with the client. |
-| `scope`                 | A space-separated list of scopes. For OpenID Connect, include `openid`.                                |
+| `scope`                 | A space-separated list of scopes. Use `openid`.                                                        |
 | `code_challenge`        | The PKCE code challenge.                                                                               |
-| `code_challenge_method` | The method used to generate the code challenge. Typically `S256`.                                      |
+| `code_challenge_method` | The method used to generate the code challenge. Use `S256`.                                            |
 | `state`                 | A random string to maintain state between the request and callback. Helps prevent CSRF attacks.        |
 | `nonce`                 | A random string to associate with the ID token. Helps prevent replay attacks.                          |
 | `response_mode`         | Specifies how the result should be returned. For this example, use `query`.                            |
 | `prompt`                | Specifies whether the user should be prompted for reauthentication.                                    |
-| `login_hint`            | Hint about the login identifier the user might use.                                                    |
+| `login_hint`            | `email:`, `social:google`, `social:facebook`                                                           |
 
 ### Example Authorization Request URL
 
@@ -85,7 +92,7 @@ https://login.futureverse.dev/auth?
 response_type=code&
 client_id=YOUR_CLIENT_ID&
 redirect_uri=http://localhost:3000/callback&
-scope=openid profile email&
+scope=openid&
 code_challenge=CODE_CHALLENGE&
 code_challenge_method=S256&
 state=STATE&
@@ -140,6 +147,7 @@ const response = await fetch(tokenEndpoint, {
 
 const tokenResponse = await response.json()
 localStorage.setItem('access_token', tokenResponse.access_token)
+localStorage.setItem('refresh_token', tokenResponse.refresh_token)
 localStorage.setItem('id_token', tokenResponse.id_token)
 ```
 
@@ -189,48 +197,23 @@ code_verifier=CODE_VERIFIER
 
 The ID token is a JWT (JSON Web Token) that contains user information. You need to decode this token to retrieve user details.
 
-### Example JWT Decoding:
-
-```js
-function parseJwt(token) {
-  const [header, payload, signature] = token.split('.')
-  const decodedHeader = JSON.parse(atob(header))
-  const decodedPayload = JSON.parse(atob(payload))
-  return { header: decodedHeader, payload: decodedPayload, signature }
-}
-
-const decodedIdToken = parseJwt(idToken)
-```
-
 ### Decoded ID Token Fields
 
-| Field       | Description                                                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------- |
-| `iss`       | Issuer identifier for the issuer of the response.                                                 |
-| `sub`       | Subject identifier. A unique identifier for the user.                                             |
-| `aud`       | Audience(s) that this ID token is intended for.                                                   |
-| `exp`       | Expiration time on or after which the ID token must not be accepted.                              |
-| `iat`       | Time at which the JWT was issued.                                                                 |
-| `auth_time` | Time when the user authentication occurred.                                                       |
-| `nonce`     | String value used to associate a client session with an ID token, and to mitigate replay attacks. |
-| `name`      | User's full name.                                                                                 |
-| `email`     | User's email address.                                                                             |
-
-### Example Decoded ID Token
-
-```json
-{
-  "iss": "https://login.futureverse.dev",
-  "sub": "1234567890",
-  "aud": "YOUR_CLIENT_ID",
-  "exp": 1609459200,
-  "iat": 1609455600,
-  "auth_time": 1609455600,
-  "nonce": "NONCE",
-  "name": "John Doe",
-  "email": "john.doe@example.com"
-}
-```
+| Login Type                      | Claim        | Description                                                                                                                                                               | Optional |
+| ------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Custodial and non-Custodial     | `sub`        | A locally unique and never reassigned identifier within the Issuer for the End-User                                                                                       | No       |
+| Custodial and non-Custodial     | `eoa`        | The externally owned account derived from public key                                                                                                                      | No       |
+| Custodial and non-Custodial     | `futurepass` | The FuturePass account address associated with this account                                                                                                               | No       |
+| Custodial and non-Custodial     | `chainId`    | The block chain id                                                                                                                                                        | No       |
+| Custodial and non-Custodial     | `nonce`      | A string value used to associate a Client session with an ID Token, and to mitigate replay attacks                                                                        | No       |
+| Custodial and non-Custodial     | `at_hash`    | A hash value verifies the integrity and authenticity of the access token                                                                                                  | No       |
+| Custodial and non-Custodial     | `aud`        | Intended audience for the ID token                                                                                                                                        | No       |
+| Custodial and non-Custodial     | `exp`        | The expiration time on or after which the ID token MUST NOT be accepted for processing                                                                                    | No       |
+| Custodial and non-Custodial     | `iat`        | The time at which the ID token was issued                                                                                                                                 | No       |
+| Custodial and non-Custodial     | `iss`        | The issuer of the response                                                                                                                                                | No       |
+| Custodial                       | `auth_time`  | The time when the authentication occurred                                                                                                                                 | Yes      |
+| Custodial and non-Custodial     | `custodian`  | self for non-custodial, fv for custodial                                                                                                                                  | No       |
+| Custodial (Google and Facebook) | `email`      | When logged in with Google, this is the user's email address. The value of this claim may not be unique to the Google account used to log in, and could change over time. | Yes      |
 
 ## Security Best Practices
 
@@ -243,108 +226,9 @@ const decodedIdToken = parseJwt(idToken)
 3. **Store Tokens Securely:**
    Store tokens securely in your application, preferably in secure HTTP-only cookies.
 
+4. **Use Tested Libraries:**
+   Instead of using the helper functions from this code, use battle-tested libraries for handling PKCE, state, nonce, parsing JWT etc.
+
 ## Example Code
 
-Below is a complete example demonstrating the steps discussed:
-
-```js
-const clientId = 'YOUR_CLIENT_ID'
-const redirectUri = 'http://localhost:3000/callback'
-const identityProviderUri = 'https://login.futureverse.dev'
-const authorizationEndpoint = `${identityProviderUri}/auth`
-const tokenEndpoint = `${identityProviderUri}/token`
-
-async function login() {
-  const { codeVerifier, codeChallenge } =
-    await generateCodeVerifierAndChallenge()
-  localStorage.setItem('code_verifier', codeVerifier)
-
-  const state = generateRandomString(16)
-  localStorage.setItem('state', state)
-
-  const nonce = generateRandomString(16)
-  localStorage.setItem('nonce', nonce)
-
-  const params = {
-    response_type: 'code',
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    scope: 'openid profile email',
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
-    state: state,
-    nonce: nonce,
-  }
-
-  const queryString = new URLSearchParams(params).toString()
-  const url = `${authorizationEndpoint}?${queryString}`
-  window.location.href = url
-}
-
-async function handleCallback() {
-  const params = new URLSearchParams(window.location.search)
-  const code = params.get('code')
-  const state = params.get('state')
-
-  if (state !== localStorage.getItem('state')) {
-    throw new Error('Invalid state')
-  }
-
-  const codeVerifier = localStorage.getItem('code_verifier')
-  const body = new URLSearchParams({
-    grant_type: 'authorization_code',
-    code: code,
-    redirect_uri: redirectUri,
-    client_id: clientId,
-    code_verifier: codeVerifier,
-  })
-
-  const response = await fetch(tokenEndpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
-  })
-
-  const tokenResponse = await response.json()
-  const decodedIdToken = parseJwt(tokenResponse.id_token)
-
-  if (decodedIdToken.payload.nonce !== localStorage.getItem('nonce')) {
-    throw new Error('Invalid nonce')
-  }
-
-  document.getElementById('token-response').innerText = JSON.stringify(
-    tokenResponse,
-    null,
-    2
-  )
-  document.getElementById('id-token-decoded').innerText = JSON.stringify(
-    decodedIdToken,
-    null,
-    2
-  )
-}
-
-function generateRandomString(length) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
-}
-
-function parseJwt(token) {
-  const [header, payload, signature] = token.split('.')
-  const decodedHeader = JSON.parse(atob(header))
-  const decodedPayload = JSON.parse(atob(payload))
-  return { header: decodedHeader, payload: decodedPayload, signature }
-}
-
-if (window.location.pathname === '/callback') {
-  handleCallback()
-}
-
-document.getElementById('login-button').addEventListener('click', login)
-```
-
-This example demonstrates how to initiate the authentication process, handle the callback, and decode the ID token using the FuturePass IDP. Adjust the client ID, redirect URI, and identity provider URI as necessary.
+The main logic for interacting with the FuturePass Identity Provider can be found in the [`src/index.ts`](src/index.ts) file. This file contains the implementation for initiating the authentication process, handling the callback, and decoding the ID token.
