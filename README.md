@@ -1,8 +1,8 @@
-Sure! Here's the guide in Markdown format:
-
 # FuturePass Identity Provider Interaction Guide
 
 This guide explains how to use the FuturePass Identity Provider (IDP) to authenticate users in your applications using the API directly without any of the Futureverse SDKs. It covers registering your experience, configuring authentication requests, handling responses, and decoding tokens.
+
+This guide only covers custodial accounts, if non-custodial is requirement we can add that.
 
 **Note:** This demo's goal is simplicity so do not depend on the helper functions used in the code to generate random strings, generate sha256, decode JWT and so on. These are not officially provided by Futureverse and here only for explanation purposes. You should use libraries which securely process data or extensively test your own implementation for edge cases.
 
