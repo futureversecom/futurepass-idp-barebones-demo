@@ -70,6 +70,7 @@ window.location.href = url
 ```
 
 ### Authorization Request Parameters
+#### Common Parameters:
 
 | Parameter               | Description                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -83,7 +84,19 @@ window.location.href = url
 | `nonce`                 | A random string to associate with the ID token. Helps prevent replay attacks.                          |
 | `response_mode`         | Specifies how the result should be returned. For this example, use `query`.                            |
 | `prompt`                | Specifies whether the user should be prompted for reauthentication.                                    |
-| `login_hint`            | `email:`, `social:google`, `social:facebook` `eoa:<siwe-with-signature>`                               |
+
+#### Variable Parameter - `login_hint`
+
+The `login_hint` parameter can take various values depending on the requested login type 
+
+| `login_hint` value   | Login type                                    |
+| -------------------- | ---------------------------------------------- |
+| `email:`             | Email login                                    |
+| `social:google`      | Google login                                   |
+| `social:facebook:`   | Facebook login                                 |
+| `eoa:<siwe-message>` | MetaMask login                                 |
+| undefined            | IDP-F login (Games), no `login_hint` is passed |
+
 
 ### Example Authorization Request URL
 
@@ -230,126 +243,6 @@ The ID token is a JWT (JSON Web Token) that contains user information. You need 
    Instead of using the helper functions from this code, use battle-tested libraries for handling PKCE, state, nonce, parsing JWT etc.
 
 ## Example Code
-The following examples demonstrate how to initiate the login process for various authentication methods in your experiences.
-
-### 1. Email
-```
-const params = {
-  client_id: YOUR_CLIENT_ID,
-  redirect_uri: YOUR_REDIRECT_URI,
-  code_challenge: CODE_CHALLENGE,
-  state: STATE,
-  nonce: NONCE,
-  response_type: 'code',
-  scope: 'openid',
-  code_challenge_method: 'S256',
-  login_hint: 'email:',
-}
-
-const queryString = new URLSearchParams(params).toString()
-const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
-window.location.href = url
-```
-| login_hint | value    |
-| ---------- | -------- |
-| login_hint | `email:` |
-
-[example](src/pages/login/email.ts)
-
-### 2. Google
-```
-const params = {
-  client_id: YOUR_CLIENT_ID,
-  redirect_uri: YOUR_REDIRECT_URI,
-  code_challenge: CODE_CHALLENGE,
-  state: STATE,
-  nonce: NONCE,
-  response_type: 'code',
-  scope: 'openid',
-  code_challenge_method: 'S256',
-  login_hint: 'social:google',
-}
-
-const queryString = new URLSearchParams(params).toString()
-const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
-window.location.href = url
-```
-| login_hint | value           |
-| ---------- | --------------- |
-| login_hint | `social:google` |
-
-
-[example](src/pages/login/social.ts)
-
-### 3. Facebook
-```
-const params = {
-  client_id: YOUR_CLIENT_ID,
-  redirect_uri: YOUR_REDIRECT_URI,
-  code_challenge: CODE_CHALLENGE,
-  state: STATE,
-  nonce: NONCE,
-  response_type: 'code',
-  scope: 'openid',
-  code_challenge_method: 'S256',
-  login_hint: 'social:facebook',
-}
-
-const queryString = new URLSearchParams(params).toString()
-const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
-window.location.href = url
-```
-| login_hint | value             |
-| ---------- | ----------------- |
-| login_hint | `social:facebook` |
-
-
-[example](src/pages/login/social.ts)
-
-### 4. MetaMask
-```
-const params = {
-  client_id: YOUR_CLIENT_ID,
-  redirect_uri: YOUR_REDIRECT_URI,
-  code_challenge: CODE_CHALLENGE,
-  state: STATE,
-  nonce: NONCE,
-  response_type: 'code',
-  scope: 'openid',
-  code_challenge_method: 'S256',
-  login_hint: 'eoa:<siwe-with-signature>',
-}
-
-const queryString = new URLSearchParams(params).toString()
-const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
-window.location.href = url
-```
-| login_hint | value                       |
-| ---------- | --------------------------- |
-| login_hint | `eoa:<siwe-with-signature>` |
-
-
-[example](src/pages/login/metamask.ts)
-
-### 5. IDP Front-End Used by Games
-This login method is used by games or experiences where users are redirected to the IDP front-end, where they can select a wallet and log in.  
-
-```
-const params = {
-  client_id: YOUR_CLIENT_ID,
-  redirect_uri: YOUR_REDIRECT_URI,
-  code_challenge: CODE_CHALLENGE,
-  state: STATE,
-  nonce: NONCE,
-  response_type: 'code',
-  scope: 'openid',
-  code_challenge_method: 'S256'
-}
-
-const queryString = new URLSearchParams(params).toString()
-const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
-window.location.href = url
-```
-[example](src/pages/login/idpFrontend.ts)
-
-In each example, replace the placeholders (YOUR_CLIENT_ID, YOUR_REDIRECT_URI, CODE_CHALLENGE, STATE, NONCE, AUTHORIZATION_ENDPOINT) with your actual configuration values. This will initiate the appropriate login process for each authentication method.
+1. Email, Google, Facebook, and IDP-F login example can be found at [`./src/pages/login/login.ts`](./src/pages/login/login.ts).
+2. MetaMask login example can be found at [`./src/pages/login/metamask.ts`](./src/pages/login/metamask.ts).
+3. Handling callback and decoding the ID token can be found at [`./src/pages/callback/callback.ts`](./src/pages/callback/callback.ts)
