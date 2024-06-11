@@ -4,7 +4,7 @@
   "description": "A demo TypeScript app for FuturePass Identity Provider authentication.",
   "main": "index.js",
   "scripts": {
-       "build": "webpack",
+    "build": "webpack",
     "start": "webpack serve"
   },
   "keywords": [],
