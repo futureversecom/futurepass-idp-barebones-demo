@@ -83,7 +83,7 @@ window.location.href = url
 | `nonce`                 | A random string to associate with the ID token. Helps prevent replay attacks.                          |
 | `response_mode`         | Specifies how the result should be returned. For this example, use `query`.                            |
 | `prompt`                | Specifies whether the user should be prompted for reauthentication.                                    |
-| `login_hint`            | `email:`, `social:google`, `social:facebook`                                                           |
+ | `login_hint`            | `email:`, `social:google`, `social:facebook` `eoa:<siwe-with-signature>`                               |
 
 ### Example Authorization Request URL
 
@@ -230,5 +230,108 @@ The ID token is a JWT (JSON Web Token) that contains user information. You need 
    Instead of using the helper functions from this code, use battle-tested libraries for handling PKCE, state, nonce, parsing JWT etc.
 
 ## Example Code
+The following examples demonstrate how to initiate the login process for various authentication methods in your experiences.
 
-The main logic for interacting with the FuturePass Identity Provider can be found in the [`src/index.ts`](src/index.ts) file. This file contains the implementation for initiating the authentication process, handling the callback, and decoding the ID token.
+### 1. Email
+```
+const params = {
+  response_type: 'code',
+  client_id: YOUR_CLIENT_ID,
+  redirect_uri: YOUR_REDIRECT_URI,
+  scope: 'openid profile email',
+  code_challenge: CODE_CHALLENGE,
+  code_challenge_method: 'S256',
+  state: STATE,
+  nonce: NONCE,
+  login_hint: 'email:',
+}
+
+const queryString = new URLSearchParams(params).toString()
+const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
+window.location.href = url
+```
+[example](src/pages/login/email.ts)
+
+### 2. Google
+```
+const params = {
+  response_type: 'code',
+  client_id: YOUR_CLIENT_ID,
+  redirect_uri: YOUR_REDIRECT_URI,
+  scope: 'openid profile email',
+  code_challenge: CODE_CHALLENGE,
+  code_challenge_method: 'S256',
+  state: STATE,
+  nonce: NONCE,
+  login_hint: 'social:google',
+}
+
+const queryString = new URLSearchParams(params).toString()
+const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
+window.location.href = url
+```
+[example](src/pages/login/google.ts)
+
+### 3. Facebook
+```
+const params = {
+  response_type: 'code',
+  client_id: YOUR_CLIENT_ID,
+  redirect_uri: YOUR_REDIRECT_URI,
+  scope: 'openid profile email',
+  code_challenge: CODE_CHALLENGE,
+  code_challenge_method: 'S256',
+  state: STATE,
+  nonce: NONCE,
+  login_hint: 'social:facebook',
+}
+
+const queryString = new URLSearchParams(params).toString()
+const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
+window.location.href = url
+```
+[example](src/pages/login/facebook.ts)
+
+### 4. MetaMask
+```
+const params = {
+  response_type: 'code',
+  client_id: YOUR_CLIENT_ID,
+  redirect_uri: YOUR_REDIRECT_URI,
+  scope: 'openid profile email',
+  code_challenge: CODE_CHALLENGE,
+  code_challenge_method: 'S256',
+  state: STATE,
+  nonce: NONCE,
+  login_hint: 'eoa:<siwe-with-signature>',
+}
+
+const queryString = new URLSearchParams(params).toString()
+const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
+window.location.href = url
+```
+[example](src/pages/login/metamask.ts)
+
+### 5. IDP Front-End Used by Games
+This login method is used by games or experiences where users are redirected to the IDP front-end, where they can select a wallet and log in.  
+
+```
+const params = {
+  response_type: 'code',
+  client_id: YOUR_CLIENT_ID,
+  redirect_uri: YOUR_REDIRECT_URI,
+  scope: 'openid profile email',
+  code_challenge: CODE_CHALLENGE,
+  code_challenge_method: 'S256',
+  state: STATE,
+  nonce: NONCE,
+  login_hint: 'games',
+}
+
+const queryString = new URLSearchParams(params).toString()
+const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
+window.location.href = url
+```
+[example](src/pages/login/idpFrontend.ts)
+
+In each example, replace the placeholders (YOUR_CLIENT_ID, YOUR_REDIRECT_URI, CODE_CHALLENGE, STATE, NONCE, AUTHORIZATION_ENDPOINT) with your actual configuration values. This will initiate the appropriate login process for each authentication method.
