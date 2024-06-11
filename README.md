@@ -279,7 +279,7 @@ window.location.href = url
 | login_hint | `social:google` |
 
 
-[example](src/pages/login/google.ts)
+[example](src/pages/login/social.ts)
 
 ### 3. Facebook
 ```
@@ -304,7 +304,7 @@ window.location.href = url
 | login_hint | `social:facebook` |
 
 
-[example](src/pages/login/facebook.ts)
+[example](src/pages/login/social.ts)
 
 ### 4. MetaMask
 ```
@@ -324,8 +324,8 @@ const queryString = new URLSearchParams(params).toString()
 const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
 window.location.href = url
 ```
-| login_hint | value             |
-| ---------- | ----------------- |
+| login_hint | value                       |
+| ---------- | --------------------------- |
 | login_hint | `eoa:<siwe-with-signature>` |
 
 
