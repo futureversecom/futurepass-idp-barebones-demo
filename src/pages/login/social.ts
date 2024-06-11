@@ -17,7 +17,7 @@ document
   });
 
 async function loginWithSocial(idp: "google" | "facebook") {
-  console.log("login with Google   called");
+  console.log(`login with ${idp} called`);
   const { codeVerifier, codeChallenge } =
     await generateCodeVerifierAndChallenge();
   localStorage.setItem("code_verifier", codeVerifier);
