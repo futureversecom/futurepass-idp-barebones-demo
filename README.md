@@ -83,7 +83,7 @@ window.location.href = url
 | `nonce`                 | A random string to associate with the ID token. Helps prevent replay attacks.                          |
 | `response_mode`         | Specifies how the result should be returned. For this example, use `query`.                            |
 | `prompt`                | Specifies whether the user should be prompted for reauthentication.                                    |
- | `login_hint`            | `email:`, `social:google`, `social:facebook` `eoa:<siwe-with-signature>`                               |
+| `login_hint`            | `email:`, `social:google`, `social:facebook` `eoa:<siwe-with-signature>`                               |
 
 ### Example Authorization Request URL
 
@@ -235,14 +235,14 @@ The following examples demonstrate how to initiate the login process for various
 ### 1. Email
 ```
 const params = {
-  response_type: 'code',
   client_id: YOUR_CLIENT_ID,
   redirect_uri: YOUR_REDIRECT_URI,
-  scope: 'openid profile email',
   code_challenge: CODE_CHALLENGE,
-  code_challenge_method: 'S256',
   state: STATE,
   nonce: NONCE,
+  response_type: 'code',
+  scope: 'openid',
+  code_challenge_method: 'S256',
   login_hint: 'email:',
 }
 
@@ -255,14 +255,14 @@ window.location.href = url
 ### 2. Google
 ```
 const params = {
-  response_type: 'code',
   client_id: YOUR_CLIENT_ID,
   redirect_uri: YOUR_REDIRECT_URI,
-  scope: 'openid profile email',
   code_challenge: CODE_CHALLENGE,
-  code_challenge_method: 'S256',
   state: STATE,
   nonce: NONCE,
+  response_type: 'code',
+  scope: 'openid',
+  code_challenge_method: 'S256',
   login_hint: 'social:google',
 }
 
@@ -275,14 +275,14 @@ window.location.href = url
 ### 3. Facebook
 ```
 const params = {
-  response_type: 'code',
   client_id: YOUR_CLIENT_ID,
   redirect_uri: YOUR_REDIRECT_URI,
-  scope: 'openid profile email',
   code_challenge: CODE_CHALLENGE,
-  code_challenge_method: 'S256',
   state: STATE,
   nonce: NONCE,
+  response_type: 'code',
+  scope: 'openid',
+  code_challenge_method: 'S256',
   login_hint: 'social:facebook',
 }
 
@@ -295,14 +295,14 @@ window.location.href = url
 ### 4. MetaMask
 ```
 const params = {
-  response_type: 'code',
   client_id: YOUR_CLIENT_ID,
   redirect_uri: YOUR_REDIRECT_URI,
-  scope: 'openid profile email',
   code_challenge: CODE_CHALLENGE,
-  code_challenge_method: 'S256',
   state: STATE,
   nonce: NONCE,
+  response_type: 'code',
+  scope: 'openid',
+  code_challenge_method: 'S256',
   login_hint: 'eoa:<siwe-with-signature>',
 }
 
@@ -317,15 +317,14 @@ This login method is used by games or experiences where users are redirected to 
 
 ```
 const params = {
-  response_type: 'code',
   client_id: YOUR_CLIENT_ID,
   redirect_uri: YOUR_REDIRECT_URI,
-  scope: 'openid profile email',
   code_challenge: CODE_CHALLENGE,
-  code_challenge_method: 'S256',
   state: STATE,
   nonce: NONCE,
-  login_hint: 'games',
+  response_type: 'code',
+  scope: 'openid',
+  code_challenge_method: 'S256'
 }
 
 const queryString = new URLSearchParams(params).toString()

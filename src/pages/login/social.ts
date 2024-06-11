@@ -2,13 +2,21 @@ import { authorizationEndpoint, clientId, redirectUri } from "../../config";
 import {
   generateCodeVerifierAndChallenge,
   generateRandomString,
-} from "./helpers";
+} from "../../helpers";
 
 document
   .getElementById("login-button-google")!
-  .addEventListener("click", loginWithGoogle);
+  .addEventListener("click", () => {
+    loginWithSocial("google");
+  });
 
-async function loginWithGoogle() {
+document
+  .getElementById("login-button-facebook")!
+  .addEventListener("click", () => {
+    loginWithSocial("facebook");
+  });
+
+async function loginWithSocial(idp: "google" | "facebook") {
   console.log("login with Google   called");
   const { codeVerifier, codeChallenge } =
     await generateCodeVerifierAndChallenge();
@@ -29,7 +37,7 @@ async function loginWithGoogle() {
     code_challenge_method: "S256",
     response_mode: "query",
     prompt: "login", // Use `none` to attempt silent authentication without prompting the user
-    login_hint: "social:google",
+    login_hint: `social:${idp}`,
     state,
     nonce,
   };

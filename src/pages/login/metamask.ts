@@ -8,7 +8,7 @@ import {
 import {
   generateCodeVerifierAndChallenge,
   generateRandomString,
-} from "./helpers";
+} from "../../helpers";
 import { BrowserProvider, getAddress } from "ethers";
 
 document

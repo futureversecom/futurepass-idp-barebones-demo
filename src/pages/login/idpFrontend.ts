@@ -2,7 +2,7 @@ import { authorizationEndpoint, clientId, redirectUri } from "../../config";
 import {
   generateCodeVerifierAndChallenge,
   generateRandomString,
-} from "./helpers";
+} from "../../helpers";
 
 document
   .getElementById("login-button-idp-front-end-login")!

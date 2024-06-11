@@ -1,5 +1,5 @@
 import "./email";
 import "./metamask";
-import "./google";
+import "./social";
 import "./facebook";
 import "./idpFrontend";

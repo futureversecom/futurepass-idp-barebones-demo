@@ -1,5 +1,5 @@
 import { clientId, redirectUri, tokenEndpoint } from "../../config";
-import { parseJwt } from "./helpers";
+import { parseJwt } from "../../helpers";
 
 displayAuthorizationCode();
 handleCallback();
