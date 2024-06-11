@@ -250,6 +250,10 @@ const queryString = new URLSearchParams(params).toString()
 const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
 window.location.href = url
 ```
+| login_hint | value    |
+| ---------- | -------- |
+| login_hint | `email:` |
+
 [example](src/pages/login/email.ts)
 
 ### 2. Google
@@ -270,6 +274,11 @@ const queryString = new URLSearchParams(params).toString()
 const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
 window.location.href = url
 ```
+| login_hint | value           |
+| ---------- | --------------- |
+| login_hint | `social:google` |
+
+
 [example](src/pages/login/google.ts)
 
 ### 3. Facebook
@@ -290,6 +299,11 @@ const queryString = new URLSearchParams(params).toString()
 const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
 window.location.href = url
 ```
+| login_hint | value             |
+| ---------- | ----------------- |
+| login_hint | `social:facebook` |
+
+
 [example](src/pages/login/facebook.ts)
 
 ### 4. MetaMask
@@ -310,6 +324,11 @@ const queryString = new URLSearchParams(params).toString()
 const url = `${AUTHORIZATION_ENDPOINT}?${queryString}`
 window.location.href = url
 ```
+| login_hint | value             |
+| ---------- | ----------------- |
+| login_hint | `eoa:<siwe-with-signature>` |
+
+
 [example](src/pages/login/metamask.ts)
 
 ### 5. IDP Front-End Used by Games
