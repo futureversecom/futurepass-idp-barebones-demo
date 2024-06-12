@@ -70,6 +70,7 @@ window.location.href = url
 ```
 
 ### Authorization Request Parameters
+#### Common Parameters:
 
 | Parameter               | Description                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -83,7 +84,19 @@ window.location.href = url
 | `nonce`                 | A random string to associate with the ID token. Helps prevent replay attacks.                          |
 | `response_mode`         | Specifies how the result should be returned. For this example, use `query`.                            |
 | `prompt`                | Specifies whether the user should be prompted for reauthentication.                                    |
-| `login_hint`            | `email:`, `social:google`, `social:facebook`                                                           |
+
+#### Variable Parameter - `login_hint`
+
+The `login_hint` parameter can take various values depending on the requested login type 
+
+| `login_hint` value   | Login type                                    |
+| -------------------- | ---------------------------------------------- |
+| `email:`             | Email login                                    |
+| `social:google`      | Google login                                   |
+| `social:facebook:`   | Facebook login                                 |
+| `eoa:<siwe-message>` | MetaMask login                                 |
+| undefined            | IDP-F login (Games), no `login_hint` is passed |
+
 
 ### Example Authorization Request URL
 
@@ -230,5 +243,6 @@ The ID token is a JWT (JSON Web Token) that contains user information. You need 
    Instead of using the helper functions from this code, use battle-tested libraries for handling PKCE, state, nonce, parsing JWT etc.
 
 ## Example Code
-
-The main logic for interacting with the FuturePass Identity Provider can be found in the [`src/index.ts`](src/index.ts) file. This file contains the implementation for initiating the authentication process, handling the callback, and decoding the ID token.
+1. Email, Google, Facebook, and IDP-F login example can be found at [`./src/pages/login/login.ts`](./src/pages/login/login.ts).
+2. MetaMask login example can be found at [`./src/pages/login/metamask.ts`](./src/pages/login/metamask.ts).
+3. Handling callback and decoding the ID token can be found at [`./src/pages/callback/callback.ts`](./src/pages/callback/callback.ts)
