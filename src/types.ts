@@ -13,3 +13,19 @@ export const signMessageType = t.strict({
 });
 
 export type signMessageType = t.TypeOf<typeof signMessageType>;
+
+export const signMessageErrorType = t.strict({
+  id: t.string,
+  tag: t.string,
+  payload: t.strict({
+    error: t.strict({
+      error: t.strict({
+        code: t.string,
+      }),
+      tag: t.string,
+    }),
+    tag: t.string,
+  }),
+});
+
+export type signMessageErrorType = t.TypeOf<typeof signMessageErrorType>;

@@ -8,7 +8,7 @@ import {
   transaction_chain_id,
 } from '../../config';
 import { parseJwt, base64UrlEncode } from '../../helpers';
-import { signMessageType } from '../../types';
+import { signMessageErrorType, signMessageType } from '../../types';
 import { either as E } from 'fp-ts';
 import { ethers } from 'ethers';
 
@@ -133,8 +133,6 @@ function signMessage() {
     return;
   }
 
-  console.log(decodedIdToken.payload.eoa);
-
   const signMessagePayload = {
     account: decodedIdToken.payload.eoa,
     message,
@@ -157,18 +155,26 @@ function signMessage() {
     'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
   );
 
-  console.log('add meesage event listener');
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
     if (ev.origin === custodialSignerUrl) {
       const dataR = signMessageType.decode(ev.data);
-
       if (E.isRight(dataR)) {
         const signature = dataR.right.payload.response.signature;
 
-        console.log(signature);
-
         document.getElementById('sign-message-sig')!.innerText = JSON.stringify(
           signature,
+          null,
+          2
+        );
+      }
+
+      const errorDataR = signMessageErrorType.decode(ev.data);
+
+      if (E.isRight(errorDataR)) {
+        const errorCode = errorDataR.right.payload.error.error.code;
+
+        document.getElementById('sign-message-sig')!.innerText = JSON.stringify(
+          errorCode,
           null,
           2
         );
@@ -193,9 +199,6 @@ async function signTransaction() {
   if (typeof window === 'undefined') {
     return;
   }
-
-  console.log(fromAccount);
-  console.log(await provider.getBalance(fromAccount));
 
   const signTransactionPayload = {
     account: fromAccount,
@@ -222,14 +225,22 @@ async function signTransaction() {
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
     if (ev.origin === custodialSignerUrl) {
       const dataR = signMessageType.decode(ev.data);
-
       if (E.isRight(dataR)) {
         transactionSignature = dataR.right.payload.response.signature;
-
-        console.log(transactionSignature);
-
         document.getElementById('sign-tx-sig')!.innerText = JSON.stringify(
           transactionSignature,
+          null,
+          2
+        );
+      }
+
+      const errorDataR = signMessageErrorType.decode(ev.data);
+
+      if (E.isRight(errorDataR)) {
+        const errorCode = errorDataR.right.payload.error.error.code;
+
+        document.getElementById('sign-tx-sig')!.innerText = JSON.stringify(
+          errorCode,
           null,
           2
         );
@@ -257,8 +268,6 @@ async function sendTransaction() {
   const transactionResponse = await provider.broadcastTransaction(
     serializedSignedTransaction
   );
-
-  console.log(transactionResponse);
 
   document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
     transactionResponse,
