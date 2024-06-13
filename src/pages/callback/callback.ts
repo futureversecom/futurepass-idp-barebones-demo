@@ -162,10 +162,6 @@ function signMessage() {
     if (ev.origin === custodialSignerUrl) {
       const dataR = signMessageType.decode(ev.data);
 
-      console.log('received message');
-      console.log(ev);
-      console.log(dataR);
-
       if (E.isRight(dataR)) {
         const signature = dataR.right.payload.response.signature;
 
@@ -188,8 +184,6 @@ async function signTransaction() {
     decodedIdToken.payload.eoa
   );
   nonce = transactionCount + 1;
-
-  console.log(nonce);
 
   const serializedUnsignedTransaction = ethers.Transaction.from({
     ...rawTransactionWithoutSignature,
@@ -225,14 +219,9 @@ async function signTransaction() {
     'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
   );
 
-  console.log('add meesage event listener');
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
     if (ev.origin === custodialSignerUrl) {
       const dataR = signMessageType.decode(ev.data);
-
-      console.log('received message');
-      console.log(ev);
-      console.log(dataR);
 
       if (E.isRight(dataR)) {
         transactionSignature = dataR.right.payload.response.signature;
