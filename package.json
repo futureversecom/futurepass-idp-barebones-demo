@@ -12,7 +12,9 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
+    "fp-ts": "^2.16.6",
     "html-webpack-plugin": "^5.6.0",
+    "io-ts": "^2.2.21",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
