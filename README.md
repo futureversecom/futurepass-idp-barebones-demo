@@ -13,8 +13,9 @@ This guide only covers custodial accounts, if non-custodial is requirement we ca
 3. [Initiating Authentication](#initiating-authentication)
 4. [Handling the Callback](#handling-the-callback)
 5. [Decoding Tokens](#decoding-tokens)
-6. [Security Best Practices](#security-best-practices)
-7. [Example Code](#example-code)
+6. [Transaction Process for Custodial Accounts](#transaction-process-for-custodial-accounts)
+7. [Security Best Practices](#security-best-practices)
+8. [Example Code](#example-code)
 
 ## Overview
 
@@ -62,14 +63,15 @@ const params = {
   code_challenge_method: 'S256',
   state: state,
   nonce: nonce,
-}
+};
 
-const queryString = new URLSearchParams(params).toString()
-const url = `${authorizationEndpoint}?${queryString}`
-window.location.href = url
+const queryString = new URLSearchParams(params).toString();
+const url = `${authorizationEndpoint}?${queryString}`;
+window.location.href = url;
 ```
 
 ### Authorization Request Parameters
+
 #### Common Parameters:
 
 | Parameter               | Description                                                                                            |
@@ -87,16 +89,15 @@ window.location.href = url
 
 #### Variable Parameter - `login_hint`
 
-The `login_hint` parameter can take various values depending on the requested login type 
+The `login_hint` parameter can take various values depending on the requested login type
 
-| `login_hint` value   | Login type                                    |
+| `login_hint` value   | Login type                                     |
 | -------------------- | ---------------------------------------------- |
 | `email:`             | Email login                                    |
 | `social:google`      | Google login                                   |
 | `social:facebook:`   | Facebook login                                 |
 | `eoa:<siwe-message>` | MetaMask login                                 |
 | undefined            | IDP-F login (Games), no `login_hint` is passed |
-
 
 ### Example Authorization Request URL
 
@@ -133,22 +134,22 @@ After the user authenticates, they are redirected back to your application with 
 ### Example Callback Handling:
 
 ```js
-const params = new URLSearchParams(window.location.search)
-const code = params.get('code')
-const state = params.get('state')
+const params = new URLSearchParams(window.location.search);
+const code = params.get('code');
+const state = params.get('state');
 
 if (state !== savedState) {
-  throw new Error('Invalid state')
+  throw new Error('Invalid state');
 }
 
-const codeVerifier = localStorage.getItem('code_verifier')
+const codeVerifier = localStorage.getItem('code_verifier');
 const body = new URLSearchParams({
   grant_type: 'authorization_code',
   code: code,
   redirect_uri: redirectUri,
   client_id: clientId,
   code_verifier: codeVerifier,
-})
+});
 
 const response = await fetch(tokenEndpoint, {
   method: 'POST',
@@ -156,12 +157,12 @@ const response = await fetch(tokenEndpoint, {
     'Content-Type': 'application/x-www-form-urlencoded',
   },
   body: body.toString(),
-})
+});
 
-const tokenResponse = await response.json()
-localStorage.setItem('access_token', tokenResponse.access_token)
-localStorage.setItem('refresh_token', tokenResponse.refresh_token)
-localStorage.setItem('id_token', tokenResponse.id_token)
+const tokenResponse = await response.json();
+localStorage.setItem('access_token', tokenResponse.access_token);
+localStorage.setItem('refresh_token', tokenResponse.refresh_token);
+localStorage.setItem('id_token', tokenResponse.id_token);
 ```
 
 ### Token Request Parameters
@@ -228,6 +229,106 @@ The ID token is a JWT (JSON Web Token) that contains user information. You need 
 | Custodial and non-Custodial     | `custodian`  | self for non-custodial, fv for custodial                                                                                                                                  | No       |
 | Custodial (Google and Facebook) | `email`      | When logged in with Google, this is the user's email address. The value of this claim may not be unique to the Google account used to log in, and could change over time. | Yes      |
 
+## Transaction Process for Custodial Accounts
+
+Custodial account transactions are unique as these users cannot sign transactions using their web3 wallets. To ensure security and align with the characteristics of web3 transactions, we have developed a special application called the **Custodial Signer**. This application securely handles the transaction signing process by communicating with a server specifically designed to manage custodial account transactions.
+
+### Integration Guide
+
+To use custodial accounts to complete transactions, tt requires users to implement a popup window and communicate with the custodial signer via post messages to obtain the signature. Then, the obtained signature is used to send the transaction to the blockchain.
+
+### Code Example: Barebones Solution
+
+#### Step 1: Get Signature by Communicating with Custodial Signer
+
+```javascript
+import { ethers } from 'ethers';
+
+const rawTransactionWithoutSignature = {
+  to: 'the destination wallet address',
+  value: ethers.parseEther('0.01'),
+  chainId: 'the chain id',
+  gasLimit: 210000,
+  gasPrice: ethers.parseUnits('10.0', 'gwei'),
+};
+let nonce = 0;
+
+const custodialSignerUrl = 'the custodial signer service url';
+
+async function signTransaction() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const fromAccount = 'your own wallet address';
+
+  const transactionCount = await provider.getTransactionCount(fromAccount);
+  nonce = transactionCount + 1;
+
+  const serializedUnsignedTransaction = ethers.Transaction.from({
+    ...rawTransactionWithoutSignature,
+    nonce,
+  }).unsignedSerialized;
+
+  const signTransactionPayload = {
+    account: fromAccount,
+    transaction: serializedUnsignedTransaction,
+  };
+
+  const id = 'client:2'; // must be formatted as `client:${ an identifier number }`
+  const tag = 'fv/sign-tx'; // do not change this
+
+  const encodedPayload = {
+    id,
+    tag,
+    payload: signTransactionPayload,
+  };
+
+  window.open(
+    `${custodialSignerUrl}?request=${base64UrlEncode(
+      JSON.stringify(encodedPayload)
+    )}`,
+    'futureverse_wallet', // don't change this
+    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
+  );
+
+  window.addEventListener('message', (ev) => {
+    if (ev.origin === custodialSignerUrl) {
+      const dataR = signMessageType.decode(ev.data);
+
+      if (E.isRight(dataR)) {
+        transactionSignature = dataR.right.payload.response.signature;
+      }
+    }
+  });
+}
+```
+
+#### Step 2: Send Transaction to Blockchain
+
+```javascript
+sync function sendTransaction() {
+  if (transactionSignature == null || fromAccount == null) {
+    return;
+  }
+
+  const rawTransactionWithSignature = {
+    ...rawTransactionWithoutSignature,
+    signature: transactionSignature,
+    from: fromAccount,
+    nonce,
+  };
+
+  const serializedSignedTransaction = ethers.Transaction.from(
+    rawTransactionWithSignature
+  ).serialized;
+
+  const transactionResponse = await provider.broadcastTransaction(
+    serializedSignedTransaction
+  );
+}
+```
+
 ## Security Best Practices
 
 1. **Use PKCE:**
@@ -243,6 +344,7 @@ The ID token is a JWT (JSON Web Token) that contains user information. You need 
    Instead of using the helper functions from this code, use battle-tested libraries for handling PKCE, state, nonce, parsing JWT etc.
 
 ## Example Code
+
 1. Email, Google, Facebook, and IDP-F login example can be found at [`./src/pages/login/login.ts`](./src/pages/login/login.ts).
 2. MetaMask login example can be found at [`./src/pages/login/metamask.ts`](./src/pages/login/metamask.ts).
 3. Handling callback and decoding the ID token can be found at [`./src/pages/callback/callback.ts`](./src/pages/callback/callback.ts)
