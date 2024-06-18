@@ -14,6 +14,7 @@ This guide only covers custodial accounts, if non-custodial is requirement we ca
 4. [Handling the Callback](#handling-the-callback)
 5. [Decoding Tokens](#decoding-tokens)
 6. [Transaction Process for Custodial Accounts](#transaction-process-for-custodial-accounts)
+7. [Logout](#logout)
 7. [Security Best Practices](#security-best-practices)
 8. [Example Code](#example-code)
 
@@ -328,6 +329,19 @@ sync function sendTransaction() {
   );
 }
 ```
+
+## Logout
+To log a user out of your application, you need to clear their session data and redirect them to the FuturePass logout endpoint.
+
+```js
+function logout() {
+  localStorage.clear();
+  window.location.href = `${identityProviderUri}/logout`;
+}
+```
+### Importance of Logging Out Before Initiating a New Login
+It is crucial to log out before initiating a new login. If this step is skipped, a Dropped Pass error will occur. This happens because, the demo does not check for existing session or tries `silent_login`
+
 
 ## Security Best Practices
 

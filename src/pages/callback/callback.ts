@@ -6,6 +6,7 @@ import {
   alchemyJsonRpcProviderUrl,
   transaction_to_address,
   transaction_chain_id,
+  identityProviderUri,
 } from '../../config';
 import { parseJwt, base64UrlEncode } from '../../helpers';
 import { signMessageErrorType, signMessageType } from '../../types';
@@ -29,6 +30,10 @@ document
   .addEventListener('click', async () => {
     await sendTransaction();
   });
+
+document.getElementById('logout')!.addEventListener('click', async () => {
+  await logout();
+});
 
 displayAuthorizationCode();
 handleCallback();
@@ -126,10 +131,20 @@ function displayDecodedIdToken(decodedToken: any) {
   );
 }
 
+function logout() {
+  localStorage.clear();
+  window.location.href = `${identityProviderUri}/logout`;
+}
+
 function signMessage() {
   const message = '0x65Aa45B043f360887fD0fA18A4E137e036F5A708';
 
   if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (decodedIdToken.payload.custodian !== 'fv') {
+    alert('not a custodial account');
     return;
   }
 
@@ -185,6 +200,11 @@ function signMessage() {
 
 async function signTransaction() {
   const fromAccount = decodedIdToken.payload.eoa;
+
+  if (decodedIdToken.payload.custodian !== 'fv') {
+    alert('not a custodial account');
+    return;
+  }
 
   const transactionCount = await provider.getTransactionCount(
     decodedIdToken.payload.eoa
@@ -250,6 +270,11 @@ async function signTransaction() {
 }
 
 async function sendTransaction() {
+  if (decodedIdToken.payload.custodian !== 'fv') {
+    alert('not a custodial account');
+    return;
+  }
+
   if (transactionSignature == null || decodedIdToken.payload.eoa == null) {
     return;
   }
