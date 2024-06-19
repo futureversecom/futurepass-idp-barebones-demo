@@ -340,7 +340,7 @@ function logout() {
 }
 ```
 ### Importance of Logging Out Before Initiating a New Login
-It is crucial to log out before initiating a new login. If this step is skipped, a Dropped Pass error will occur. This happens because, the demo does not check for existing session or tries `silent_login`
+It is crucial to log out before initiating a new login. If this step is skipped, a Dropped Pass error will occur. This happens because, the demo does not check for existing session or tries `silent_login` (which is something we recommend every experience to do).
 
 
 ## Security Best Practices
