@@ -6,18 +6,13 @@ import {
   alchemyJsonRpcProviderUrl,
   transaction_to_address,
   transaction_chain_id,
-  authorizationEndpoint,
   identityProviderUri,
 } from '../../config';
-import {
-  parseJwt,
-  base64UrlEncode,
-  generateCodeVerifierAndChallenge,
-  generateRandomString,
-} from '../../helpers';
+import { parseJwt, base64UrlEncode } from '../../helpers';
 import { signMessageErrorType, signMessageType } from '../../types';
 import { either as E } from 'fp-ts';
 import { ethers } from 'ethers';
+import { login } from '../login/auth';
 
 document
   .getElementById('sign-message-button')!
@@ -41,6 +36,12 @@ document.getElementById('logout')!.addEventListener('click', async () => {
   await logout();
 });
 
+document
+  .getElementById('silent-login-button')!
+  .addEventListener('click', async () => {
+    await silentLogin();
+  });
+
 displayAuthorizationCode();
 handleCallback();
 
@@ -56,12 +57,6 @@ const rawTransactionWithoutSignature = {
   gasPrice: ethers.parseUnits('10.0', 'gwei'),
 };
 let nonce = 0;
-
-document
-  .getElementById('silent-login-button')!
-  .addEventListener('click', async () => {
-    await silentLogin();
-  });
 
 async function handleCallback() {
   const params = new URLSearchParams(window.location.search);
@@ -314,32 +309,5 @@ async function sendTransaction() {
 }
 
 async function silentLogin() {
-  const { codeVerifier, codeChallenge } =
-    await generateCodeVerifierAndChallenge();
-  localStorage.setItem('code_verifier', codeVerifier);
-
-  const state = generateRandomString(16);
-  localStorage.setItem('state', state);
-
-  const nonce = generateRandomString(16);
-  localStorage.setItem('nonce', nonce);
-
-  const query = {
-    prompt: 'none',
-    login_hint: decodedIdToken.payload.eoa,
-    response_type: 'code',
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    scope: 'openid',
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
-    response_mode: 'query',
-    state,
-    nonce,
-  };
-
-  const queryString = new URLSearchParams(query).toString();
-  const url = `${authorizationEndpoint}?${queryString}`;
-
-  window.location.href = url;
+  await login('silent', decodedIdToken.payload.eoa);
 }
