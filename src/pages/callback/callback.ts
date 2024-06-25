@@ -12,6 +12,7 @@ import { parseJwt, base64UrlEncode } from '../../helpers';
 import { signMessageErrorType, signMessageType } from '../../types';
 import { either as E } from 'fp-ts';
 import { ethers } from 'ethers';
+import { login } from '../login/auth';
 
 document
   .getElementById('sign-message-button')!
@@ -34,6 +35,12 @@ document
 document.getElementById('logout')!.addEventListener('click', async () => {
   await logout();
 });
+
+document
+  .getElementById('silent-login-button')!
+  .addEventListener('click', async () => {
+    await silentLogin();
+  });
 
 displayAuthorizationCode();
 handleCallback();
@@ -299,4 +306,8 @@ async function sendTransaction() {
     null,
     2
   );
+}
+
+async function silentLogin() {
+  await login('silent', decodedIdToken.payload.eoa);
 }
