@@ -14,9 +14,10 @@ This guide only covers custodial accounts, if non-custodial is requirement we ca
 4. [Handling the Callback](#handling-the-callback)
 5. [Decoding Tokens](#decoding-tokens)
 6. [Transaction Process for Custodial Accounts](#transaction-process-for-custodial-accounts)
-7. [Logout](#logout)
-7. [Security Best Practices](#security-best-practices)
-8. [Example Code](#example-code)
+7. [Silent Login](#silent-login)
+8. [Logout](#logout)
+9. [Security Best Practices](#security-best-practices)
+10. [Example Code](#example-code)
 
 ## Overview
 
@@ -330,7 +331,54 @@ sync function sendTransaction() {
 }
 ```
 
+## Silent Login
+
+### Introduction
+
+Silent login is a method used to obtain a new authentication token without disturbing the user, typically when the user is already logged in and has an active session. It is particularly useful in Single Sign-On (SSO) scenarios and applications that need to maintain the user's logged-in state.
+
+### Use Cases
+
+1. **Cross-Application Single Sign-On (SSO)**:
+
+   - When multiple applications share the same identity provider, silent login can maintain the login state as the user switches between applications without requiring each application to individually use a refresh token.
+
+2. **Session Restoration**:
+
+   - After the user closes the browser or tab, silent login can check and restore the user session when the application is reopened, eliminating the need for the user to manually log in again.
+
+3. **Token Refresh**:
+   - When the user's access token expires but there is still an active session, silent login can transparently obtain a new access token without requiring the user to re-authenticate.
+
+### Advantages
+
+- **No User Interaction**: Silent login operates without requiring any user interaction when there is an active session.
+- **Cross-Domain or Cross-Application Support**: Ideal for SSO scenarios, maintaining a consistent login state across different applications.
+- **Session Maintenance**: Automatically checks and restores the user session when the browser or tab is reopened.
+
+### Limitations
+
+- **Dependent on Browser Session State**: Silent login relies on the browser's session state (e.g., cookies). If the session expires or is deleted, silent login will not function.
+
+### Example Silent Login Request URL
+
+```plaintext
+https://login.futureverse.dev/auth?
+response_type=code&
+client_id=YOUR_CLIENT_ID&
+redirect_uri=http://localhost:3000/callback&
+scope=openid&
+code_challenge=CODE_CHALLENGE&
+code_challenge_method=S256&
+state=STATE&
+nonce=NONCE&
+response_mode=query&
+prompt=none&
+login_hint=<the target eoa usually coming from current login>
+```
+
 ## Logout
+
 To log a user out of your application, you need to clear their session data and redirect them to the FuturePass logout endpoint.
 
 ```js
@@ -339,9 +387,10 @@ function logout() {
   window.location.href = `${identityProviderUri}/logout`;
 }
 ```
-### Importance of Logging Out Before Initiating a New Login
-It is crucial to log out before initiating a new login. If this step is skipped, a Dropped Pass error will occur. This happens because, the demo does not check for existing session or tries `silent_login` (which is something we recommend every experience to do).
 
+### Importance of Logging Out Before Initiating a New Login
+
+It is crucial to log out before initiating a new login. If this step is skipped, a Dropped Pass error will occur. This happens because, the demo does not check for existing session or tries `silent_login` (which is something we recommend every experience to do).
 
 ## Security Best Practices
 
