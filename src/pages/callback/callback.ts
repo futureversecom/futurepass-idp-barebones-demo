@@ -51,7 +51,7 @@ let transactionSignature: string | undefined;
 const provider = new ethers.JsonRpcProvider(alchemyJsonRpcProviderUrl);
 const rawTransactionWithoutSignature = {
   to: transaction_to_address,
-  value: ethers.parseEther('0.01'),
+  value: ethers.parseEther('0.001'),
   chainId: transaction_chain_id,
   gasLimit: 210000,
   gasPrice: ethers.parseUnits('10.0', 'gwei'),
@@ -158,6 +158,7 @@ function signMessage() {
   const signMessagePayload = {
     account: decodedIdToken.payload.eoa,
     message,
+    redirectURI: 'http://localhost:3000/signature-callback',
   };
 
   const id = 'client:1';
@@ -169,12 +170,25 @@ function signMessage() {
     payload: signMessagePayload,
   };
 
-  window.open(
+  const signerUrl =
     custodialSignerUrl +
-      '?request=' +
-      base64UrlEncode(JSON.stringify(encodedPayload)),
+    '?request=' +
+    base64UrlEncode(JSON.stringify(encodedPayload));
+
+  document.getElementById('sign-message-sig')!.innerHTML = `
+    <div >
+      <pre><code>${JSON.stringify(
+        { encodedPayload, signerUrl },
+        null,
+        2
+      )}</code></pre>
+    </div>
+  `;
+
+  window.open(
+    signerUrl,
     'futureverse_wallet',
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
+    'popup,right=0,width=290,height=386,menubar=no,toolbar=no,location=no,status=0'
   );
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
@@ -216,7 +230,8 @@ async function signTransaction() {
   const transactionCount = await provider.getTransactionCount(
     decodedIdToken.payload.eoa
   );
-  nonce = transactionCount + 1;
+
+  nonce = transactionCount;
 
   const serializedUnsignedTransaction = ethers.Transaction.from({
     ...rawTransactionWithoutSignature,
@@ -230,6 +245,7 @@ async function signTransaction() {
   const signTransactionPayload = {
     account: fromAccount,
     transaction: serializedUnsignedTransaction,
+    redirectURI: 'http://localhost:3000/signature-callback',
   };
 
   const id = 'client:2';
@@ -241,12 +257,25 @@ async function signTransaction() {
     payload: signTransactionPayload,
   };
 
-  window.open(
+  const signerUrl =
     custodialSignerUrl +
-      '?request=' +
-      base64UrlEncode(JSON.stringify(encodedPayload)),
+    '?request=' +
+    base64UrlEncode(JSON.stringify(encodedPayload));
+
+  document.getElementById('sign-tx-sig')!.innerHTML = `
+    <div >
+      <pre><code>${JSON.stringify(
+        { encodedPayload, signerUrl },
+        null,
+        2
+      )}</code></pre>
+    </div>
+  `;
+
+  window.open(
+    signerUrl,
     'futureverse_wallet',
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
+    'popup,right=0,width=290,height=386,menubar=no,toolbar=no,location=no,status=0'
   );
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
