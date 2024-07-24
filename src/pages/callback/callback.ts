@@ -42,6 +42,26 @@ document
     await silentLogin();
   });
 
+document
+  .getElementById('sign-message-callback-enabled')!
+  .addEventListener('change', (e: Event) => {
+    const checkbox = e.target as HTMLInputElement;
+    const callbackUrlInput = document.getElementById(
+      'sign-message-callback-url'
+    )! as HTMLInputElement;
+    callbackUrlInput.disabled = !checkbox.checked;
+  });
+
+document
+  .getElementById('sign-tx-callback-enabled')!
+  .addEventListener('change', (e: Event) => {
+    const checkbox = e.target as HTMLInputElement;
+    const callbackUrlInput = document.getElementById(
+      'sign-tx-callback-url'
+    )! as HTMLInputElement;
+    callbackUrlInput.disabled = !checkbox.checked;
+  });
+
 displayAuthorizationCode();
 handleCallback();
 
@@ -51,7 +71,7 @@ let transactionSignature: string | undefined;
 const provider = new ethers.JsonRpcProvider(alchemyJsonRpcProviderUrl);
 const rawTransactionWithoutSignature = {
   to: transaction_to_address,
-  value: ethers.parseEther('0.01'),
+  value: ethers.parseEther('0.001'),
   chainId: transaction_chain_id,
   gasLimit: 210000,
   gasPrice: ethers.parseUnits('10.0', 'gwei'),
@@ -144,7 +164,9 @@ function logout() {
 }
 
 function signMessage() {
-  const message = '0x65Aa45B043f360887fD0fA18A4E137e036F5A708';
+  const message =
+    (document.getElementById('sign-message-input')! as HTMLInputElement)
+      .value ?? '0x65Aa45B043f360887fD0fA18A4E137e036F5A708';
 
   if (typeof window === 'undefined') {
     return;
@@ -155,9 +177,21 @@ function signMessage() {
     return;
   }
 
+  const callbackUrl = (
+    document.getElementById('sign-message-callback-url')! as HTMLInputElement
+  ).value;
+
+  const callbackEnabled = (
+    document.getElementById(
+      'sign-message-callback-enabled'
+    )! as HTMLInputElement
+  ).checked;
+
   const signMessagePayload = {
     account: decodedIdToken.payload.eoa,
     message,
+    callbackUrl:
+      callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
   };
 
   const id = 'client:1';
@@ -169,10 +203,23 @@ function signMessage() {
     payload: signMessagePayload,
   };
 
-  window.open(
+  const signerUrl =
     custodialSignerUrl +
-      '?request=' +
-      base64UrlEncode(JSON.stringify(encodedPayload)),
+    '?request=' +
+    base64UrlEncode(JSON.stringify(encodedPayload));
+
+  document.getElementById('sign-message-sig')!.innerHTML = `
+    <div >
+      <pre><code>${JSON.stringify(
+        { encodedPayload, signerUrl },
+        null,
+        2
+      )}</code></pre>
+    </div>
+  `;
+
+  window.open(
+    signerUrl,
     'futureverse_wallet',
     'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
   );
@@ -216,7 +263,8 @@ async function signTransaction() {
   const transactionCount = await provider.getTransactionCount(
     decodedIdToken.payload.eoa
   );
-  nonce = transactionCount + 1;
+
+  nonce = transactionCount;
 
   const serializedUnsignedTransaction = ethers.Transaction.from({
     ...rawTransactionWithoutSignature,
@@ -227,9 +275,19 @@ async function signTransaction() {
     return;
   }
 
+  const callbackUrl = (
+    document.getElementById('sign-tx-callback-url')! as HTMLInputElement
+  ).value;
+
+  const callbackEnabled = (
+    document.getElementById('sign-tx-callback-enabled')! as HTMLInputElement
+  ).checked;
+
   const signTransactionPayload = {
     account: fromAccount,
     transaction: serializedUnsignedTransaction,
+    callbackUrl:
+      callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
   };
 
   const id = 'client:2';
@@ -241,10 +299,23 @@ async function signTransaction() {
     payload: signTransactionPayload,
   };
 
-  window.open(
+  const signerUrl =
     custodialSignerUrl +
-      '?request=' +
-      base64UrlEncode(JSON.stringify(encodedPayload)),
+    '?request=' +
+    base64UrlEncode(JSON.stringify(encodedPayload));
+
+  document.getElementById('sign-tx-sig')!.innerHTML = `
+    <div >
+      <pre><code>${JSON.stringify(
+        { encodedPayload, signerUrl },
+        null,
+        2
+      )}</code></pre>
+    </div>
+  `;
+
+  window.open(
+    signerUrl,
     'futureverse_wallet',
     'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
   );
