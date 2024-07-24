@@ -277,6 +277,13 @@ async function signTransaction() {
     transaction: serializedUnsignedTransaction,
   };
 
+  // If using native clients (games) payload can include callbackUrl to which signature will be sent
+  // const signTransactionPayload = {
+  //   account: fromAccount,
+  //   transaction: serializedUnsignedTransaction,
+  //   callbackUrl: 'http://localhost:3000/signature-callback' // <- your game callback URL here
+  // }; 
+
   const id = 'client:2'; // must be formatted as `client:${ an identifier number }`
   const tag = 'fv/sign-tx'; // do not change this
 
@@ -411,3 +418,4 @@ It is crucial to log out before initiating a new login. If this step is skipped,
 1. Email, Google, Facebook, and IDP-F login example can be found at [`./src/pages/login/login.ts`](./src/pages/login/login.ts).
 2. MetaMask login example can be found at [`./src/pages/login/metamask.ts`](./src/pages/login/metamask.ts).
 3. Handling callback and decoding the ID token can be found at [`./src/pages/callback/callback.ts`](./src/pages/callback/callback.ts)
+4. Handling signature callbacks for native clients(games) can be found at ['./src/pages/signature-callback/signature-callback.ts'](./src/pages/signature-callback/signature-callback.ts)
