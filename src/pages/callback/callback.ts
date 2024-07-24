@@ -2,6 +2,7 @@ import {
   clientId,
   redirectUri,
   tokenEndpoint,
+  wellknownEndpoint,
   custodialSignerUrl,
   alchemyJsonRpcProviderUrl,
   transaction_to_address,
@@ -11,8 +12,10 @@ import {
 import { parseJwt, base64UrlEncode } from '../../helpers';
 import { signMessageErrorType, signMessageType } from '../../types';
 import { either as E } from 'fp-ts';
-import { ethers } from 'ethers';
+import { ethers, id } from 'ethers';
 import { login } from '../login/auth';
+import * as jwt from 'jsonwebtoken';
+import * as pemJwk from 'pem-jwk';
 
 document
   .getElementById('sign-message-button')!
@@ -40,6 +43,18 @@ document
   .getElementById('silent-login-button')!
   .addEventListener('click', async () => {
     await silentLogin();
+  });
+
+document
+  .getElementById('exchange-token-button')!
+  .addEventListener('click', async () => {
+    await exchangeToken();
+  });
+
+document
+  .getElementById('validate-id-token-button')!
+  .addEventListener('click', async () => {
+    await validateIdToken();
   });
 
 displayAuthorizationCode();
@@ -87,6 +102,9 @@ async function handleCallback() {
   });
 
   const tokenEndpointResponse = await response.json();
+  localStorage.setItem('refresh_token', tokenEndpointResponse.refresh_token);
+  localStorage.setItem('id_token', tokenEndpointResponse.id_token);
+
   decodedIdToken = parseJwt(tokenEndpointResponse.id_token);
 
   if (!decodedIdToken) {
@@ -310,4 +328,81 @@ async function sendTransaction() {
 
 async function silentLogin() {
   await login('silent', decodedIdToken.payload.eoa);
+}
+
+async function exchangeToken() {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (refreshToken) {
+    const params = {
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: clientId,
+    };
+
+    const response = await fetch(tokenEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(params),
+    });
+
+    if (!response.ok) {
+      // Throw an error if the response from the token endpoint is not successful
+      const errorDetail = await response.json();
+      throw new Error(`Token endpoint error: ${errorDetail.error}`);
+    }
+
+    const tokenEndpointResponse = await response.json();
+    console.log(tokenEndpointResponse);
+    localStorage.setItem('refresh_token', tokenEndpointResponse.refresh_token);
+    localStorage.setItem('id_token', tokenEndpointResponse.id_token);
+
+    decodedIdToken = parseJwt(tokenEndpointResponse.id_token);
+
+    if (!decodedIdToken) {
+      throw new Error('Invalid JWT token');
+    }
+
+    verifyNonce(decodedIdToken.payload.nonce);
+
+    displayTokenResponse(tokenEndpointResponse);
+    displayDecodedIdToken(decodedIdToken);
+  }
+}
+
+async function validateIdToken() {
+  const idToken = localStorage.getItem('id_token');
+
+  if (idToken) {
+    const response = await fetch(wellknownEndpoint);
+    if (!response.ok) {
+      // Throw an error if the response from the token endpoint is not successful
+      const errorDetail = await response.json();
+      throw new Error(`well-known endpoint error: ${errorDetail.error}`);
+    }
+
+    const tokenEndpointResponse = await response.json();
+    const jwksUrl = tokenEndpointResponse.jwks_uri;
+    const jwksResponse = await fetch(jwksUrl);
+
+    if (!jwksResponse.ok) {
+      // Throw an error if the response from the token endpoint is not successful
+      const errorDetail = await jwksResponse.json();
+      throw new Error(`jwks endpoint error: ${errorDetail.error}`);
+    }
+
+    const jwks = await jwksResponse.json();
+    const publicKey = jwks.keys[0];
+    const publicKeyPem = pemJwk.jwk2pem(publicKey);
+    const decodedToken = jwt.verify(idToken, publicKeyPem, {
+      algorithms: ['RS256'],
+    });
+
+    document.getElementById('validate-id-token')!.innerText = JSON.stringify(
+      decodedToken,
+      null,
+      2
+    );
+  }
 }
