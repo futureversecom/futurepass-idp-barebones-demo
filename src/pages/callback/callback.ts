@@ -7,6 +7,7 @@ import {
   transaction_to_address,
   transaction_chain_id,
   identityProviderUri,
+  custodialSignerPassonlineUrl,
 } from '../../config';
 import { parseJwt, base64UrlEncode } from '../../helpers';
 import { signMessageErrorType, signMessageType } from '../../types';
@@ -18,6 +19,12 @@ document
   .getElementById('sign-message-button')!
   .addEventListener('click', () => {
     signMessage();
+  });
+
+document
+  .getElementById('sign-message-with-idpurl-specified-button')!
+  .addEventListener('click', () => {
+    signMessage(true);
   });
 
 document
@@ -163,7 +170,7 @@ function logout() {
   window.location.href = `${identityProviderUri}/logout`;
 }
 
-function signMessage() {
+function signMessage(usingIdpURL = false) {
   const message =
     (document.getElementById('sign-message-input')! as HTMLInputElement)
       .value ?? '0x65Aa45B043f360887fD0fA18A4E137e036F5A708';
@@ -206,7 +213,13 @@ function signMessage() {
   const signerUrl =
     custodialSignerUrl +
     '?request=' +
-    base64UrlEncode(JSON.stringify(encodedPayload));
+    base64UrlEncode(
+      JSON.stringify(
+        usingIdpURL
+          ? { idpURL: identityProviderUri, ...encodedPayload }
+          : encodedPayload
+      )
+    );
 
   document.getElementById('sign-message-sig')!.innerHTML = `
     <div >
@@ -225,7 +238,17 @@ function signMessage() {
   );
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
-    if (ev.origin === custodialSignerUrl) {
+    /**
+     *
+     * The request was redirected from custodialSignerUrl to custodialSignerPassonlineUrl,
+     * that is why the event is received from custodialSignerPassonlineUrl
+     *
+     */
+
+    if (
+      ev.origin === custodialSignerUrl ||
+      ev.origin === custodialSignerPassonlineUrl
+    ) {
       const dataR = signMessageType.decode(ev.data);
       if (E.isRight(dataR)) {
         const signature = dataR.right.payload.response.signature;
@@ -321,7 +344,10 @@ async function signTransaction() {
   );
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
-    if (ev.origin === custodialSignerUrl) {
+    if (
+      ev.origin === custodialSignerUrl ||
+      ev.origin === custodialSignerPassonlineUrl
+    ) {
       const dataR = signMessageType.decode(ev.data);
       if (E.isRight(dataR)) {
         transactionSignature = dataR.right.payload.response.signature;
