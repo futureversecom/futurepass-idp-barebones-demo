@@ -63,5 +63,5 @@ module.exports = {
     }),
     new NodePolyfillPlugin(),
   ],
-  watch: true,
+  watch: false,
 };
