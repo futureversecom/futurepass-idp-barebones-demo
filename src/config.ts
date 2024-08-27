@@ -1,13 +1,13 @@
-export const clientId = '8XPY4Vnc6BBn_4XNBYk0P'; // This is a test Client ID, preferably use your own
+export const clientId = 'dashboard'; // This is a test Client ID, preferably use your own
 export const accessToken = 'G-Y5OwG_2NDRLFTpLpyjX92WyLMia2t0PcmPboGeMqi'; // This is a test /manageclients Access Token, preferably use your own
-export const redirectUri = 'http://localhost:3000/callback'; // Ensure this matches the redirect_uri defined on /manageclients
+export const redirectUri = 'http://localhost:4204/callback'; // Ensure this matches the redirect_uri defined on /manageclients
 
-export const identityProviderUri = 'https://login.futureverse.cloud'; // .dev -> DEV, .cloud -> STAGING, .app -> PRODUCTION
+export const identityProviderUri = 'http://localhost:4200'; // .dev -> DEV, .cloud -> STAGING, .app -> PRODUCTION
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`;
 export const tokenEndpoint = `${identityProviderUri}/token`;
 
-export const custodialSignerUrl = `https://signer.futureverse.cloud`;
+export const custodialSignerUrl = `http://localhost:4202`;
 
 export const alchemyJsonRpcProviderUrl = `https://rpc.sepolia.org/`; // add your onw alchemy json rpc provider url
 
