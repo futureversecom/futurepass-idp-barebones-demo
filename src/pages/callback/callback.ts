@@ -192,6 +192,7 @@ function signMessage() {
     message,
     callbackUrl:
       callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
+    idpURL: identityProviderUri,
   };
 
   const id = 'client:1';
@@ -288,6 +289,7 @@ async function signTransaction() {
     transaction: serializedUnsignedTransaction,
     callbackUrl:
       callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
+    idpURL: identityProviderUri,
   };
 
   const id = 'client:2';
