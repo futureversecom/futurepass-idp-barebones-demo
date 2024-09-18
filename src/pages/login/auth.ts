@@ -1,8 +1,10 @@
+import { randomBytes, uuidV4 } from 'ethers';
 import { authorizationEndpoint, clientId, redirectUri } from '../../config';
 import {
   generateCodeVerifierAndChallenge,
   generateRandomString,
 } from '../../helpers';
+import { demoMixpanel } from '../mixpanel/mixpanel';
 
 export async function login(
   loginType: 'google' | 'facebook' | 'email' | 'idp-f' | 'silent',
@@ -19,6 +21,18 @@ export async function login(
   const nonce = generateRandomString(16);
   localStorage.setItem('nonce', nonce);
 
+  let device_id = localStorage.getItem('device_id');
+  if (device_id == null) {
+    device_id = uuidV4(randomBytes(32)); // used for tracking anonymous user actions on the frontend
+
+    // this is an example of showing how to track the event for an anonymous user before login
+    localStorage.setItem('device_id', device_id);
+    demoMixpanel.track('device_id_created', {
+      $device_id: device_id,
+      device_id_created_at: Date.now(),
+    });
+  }
+
   const commonParams = {
     response_type: 'code',
     client_id: clientId,
@@ -30,6 +44,7 @@ export async function login(
     prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
     state,
     nonce,
+    device_id,
   };
 
   let query;
@@ -51,7 +66,9 @@ export async function login(
       }
     case 'idp-f':
       // for idp-f we don't pass login_hint just commonParams
-      query = commonParams;
+      // query = commonParams;
+      // query = { ...commonParams, login_hint: 'game:unity:' };
+      query = { ...commonParams, login_hint: 'game:unreal:' };
   }
 
   const queryString = new URLSearchParams(query).toString();
