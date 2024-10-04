@@ -1,5 +1,5 @@
 import { base64UrlDecode } from '../../helpers';
-import { alchemyJsonRpcProviderUrl } from '../../config';
+import { ethJsonRpcProviderUrl } from '../../config';
 import * as ethers from 'ethers';
 
 type Hex = string;
@@ -36,7 +36,7 @@ document.getElementById('signature-data')!.innerHTML = `
   </div>
 `;
 
-const provider = new ethers.JsonRpcProvider(alchemyJsonRpcProviderUrl);
+const provider = new ethers.JsonRpcProvider(ethJsonRpcProviderUrl);
 
 function handleTransactionResponse(txRes: SignTransactionResponse) {
   const sendTransactionButton = document.createElement('button');
