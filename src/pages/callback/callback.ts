@@ -3,15 +3,20 @@ import {
   redirectUri,
   tokenEndpoint,
   custodialSignerUrl,
-  alchemyJsonRpcProviderUrl,
-  transaction_to_address,
-  transaction_chain_id,
   identityProviderUri,
+  rootChainId,
+  rootReceiverAddress,
+  providers,
+  xrpERC20Precompile,
+  XRP_PRECOMPILE_ADDRESS,
+  TransactionType,
+  ethReceiverAddress,
+  ethChainId,
 } from '../../config';
 import { parseJwt, base64UrlEncode } from '../../helpers';
 import { signMessageErrorType, signMessageType } from '../../types';
 import { either as E } from 'fp-ts';
-import { ethers } from 'ethers';
+import { ethers, TransactionLike } from 'ethers';
 import { login } from '../login/auth';
 
 document
@@ -21,9 +26,15 @@ document
   });
 
 document
-  .getElementById('sign-tx-button')!
+  .getElementById('sign-eth-tx-button')!
   .addEventListener('click', async () => {
-    await signTransaction();
+    await signTransaction('eth');
+  });
+
+document
+  .getElementById('sign-root-tx-button')!
+  .addEventListener('click', async () => {
+    await signTransaction('root');
   });
 
 document
@@ -67,15 +78,16 @@ handleCallback();
 
 let decodedIdToken: { payload: any; header?: any; signature?: string };
 let transactionSignature: string | undefined;
+let transactionType: TransactionType;
 
-const provider = new ethers.JsonRpcProvider(alchemyJsonRpcProviderUrl);
-const rawTransactionWithoutSignature = {
-  to: transaction_to_address,
-  value: ethers.parseEther('0.001'),
-  chainId: transaction_chain_id,
-  gasLimit: 210000,
-  gasPrice: ethers.parseUnits('10.0', 'gwei'),
+let rawTransactions: Record<
+  typeof transactionType,
+  TransactionLike<string> | null
+> = {
+  eth: null,
+  root: null,
 };
+
 let nonce = 0;
 
 async function handleCallback() {
@@ -192,10 +204,10 @@ function signMessage() {
     message,
     callbackUrl:
       callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
-    idpURL: identityProviderUri,
+    idpUrl: identityProviderUri,
   };
 
-  const id = 'client:1';
+  const id = 'client:0';
   const tag = 'fv/sign-msg';
 
   const encodedPayload = {
@@ -222,7 +234,7 @@ function signMessage() {
   window.open(
     signerUrl,
     'futureverse_wallet',
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
+    'popup,right=0,width=290,height=486,menubar=no,toolbar=no,location=no,status=0'
   );
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
@@ -253,60 +265,111 @@ function signMessage() {
   });
 }
 
-async function signTransaction() {
-  const fromAccount = decodedIdToken.payload.eoa;
+async function signTransaction(type: TransactionType = 'eth') {
+  try {
+    transactionType = type;
+    const fromAccount = decodedIdToken.payload.eoa;
 
-  if (decodedIdToken.payload.custodian !== 'fv') {
-    alert('not a custodial account');
-    return;
-  }
+    if (decodedIdToken.payload.custodian !== 'fv') {
+      alert('not a custodial account');
+      return;
+    }
+    const transactionCount = await providers[type].getTransactionCount(
+      decodedIdToken.payload.eoa
+    );
 
-  const transactionCount = await provider.getTransactionCount(
-    decodedIdToken.payload.eoa
-  );
+    nonce = transactionCount;
+    const { maxFeePerGas, maxPriorityFeePerGas } = await providers[
+      type
+    ].getFeeData();
+    if (transactionType === 'root') {
+      const gasLimit = await providers[type].estimateGas({
+        to: XRP_PRECOMPILE_ADDRESS,
+        data: xrpERC20Precompile.interface.encodeFunctionData('transfer', [
+          rootReceiverAddress,
+          1,
+        ]),
+      });
 
-  nonce = transactionCount;
+      rawTransactions.root = {
+        to: XRP_PRECOMPILE_ADDRESS,
+        data: xrpERC20Precompile.interface.encodeFunctionData('transfer', [
+          rootReceiverAddress,
+          '1',
+        ]),
+        chainId: rootChainId,
+        gasLimit: gasLimit.toString(),
+        maxFeePerGas: maxFeePerGas?.toString(),
+        maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
+        nonce,
+      };
+    } else if (transactionType === 'eth') {
+      rawTransactions.eth = {
+        to: ethReceiverAddress,
+        value: ethers.parseEther('0.001'),
+        chainId: ethChainId,
+        gasLimit: 210000,
+        gasPrice: ethers.parseUnits('10.0', 'gwei'),
+      };
+    }
 
-  const serializedUnsignedTransaction = ethers.Transaction.from({
-    ...rawTransactionWithoutSignature,
-    nonce,
-  }).unsignedSerialized;
+    const tx = rawTransactions[type];
 
-  if (typeof window === 'undefined') {
-    return;
-  }
+    if (!tx) {
+      throw new Error('Invalid transaction');
+    }
 
-  const callbackUrl = (
-    document.getElementById('sign-tx-callback-url')! as HTMLInputElement
-  ).value;
+    const serializedUnsignedTransaction =
+      ethers.Transaction.from(tx).unsignedSerialized;
 
-  const callbackEnabled = (
-    document.getElementById('sign-tx-callback-enabled')! as HTMLInputElement
-  ).checked;
+    document.getElementById('raw-transaction')!.innerHTML = `
+    <div >
+      <pre><code>${JSON.stringify(
+        {
+          raw: tx,
+          serialized: serializedUnsignedTransaction,
+        },
+        null,
+        2
+      )}</code></pre>
+    </div>
+    `;
 
-  const signTransactionPayload = {
-    account: fromAccount,
-    transaction: serializedUnsignedTransaction,
-    callbackUrl:
-      callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
-    idpURL: identityProviderUri,
-  };
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-  const id = 'client:2';
-  const tag = 'fv/sign-tx';
+    const callbackUrl = (
+      document.getElementById('sign-tx-callback-url')! as HTMLInputElement
+    ).value;
 
-  const encodedPayload = {
-    id,
-    tag,
-    payload: signTransactionPayload,
-  };
+    const callbackEnabled = (
+      document.getElementById('sign-tx-callback-enabled')! as HTMLInputElement
+    ).checked;
 
-  const signerUrl =
-    custodialSignerUrl +
-    '?request=' +
-    base64UrlEncode(JSON.stringify(encodedPayload));
+    const signTransactionPayload = {
+      account: fromAccount,
+      transaction: serializedUnsignedTransaction,
+      callbackUrl:
+        callbackUrl != null && callbackEnabled ? callbackUrl : undefined,
+      idpUrl: identityProviderUri,
+    };
 
-  document.getElementById('sign-tx-sig')!.innerHTML = `
+    const id = 'client:2';
+    const tag = 'fv/sign-tx';
+
+    const encodedPayload = {
+      id,
+      tag,
+      payload: signTransactionPayload,
+    };
+
+    const signerUrl =
+      custodialSignerUrl +
+      '?request=' +
+      base64UrlEncode(JSON.stringify(encodedPayload));
+
+    document.getElementById('sign-tx-sig')!.innerHTML = `
     <div >
       <pre><code>${JSON.stringify(
         { encodedPayload, signerUrl },
@@ -316,37 +379,35 @@ async function signTransaction() {
     </div>
   `;
 
-  window.open(
-    signerUrl,
-    'futureverse_wallet',
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
-  );
+    window.open(
+      signerUrl,
+      'futureverse_wallet',
+      'popup,right=0,width=290,height=486,menubar=no,toolbar=no,location=no,status=0'
+    );
 
-  window.addEventListener('message', (ev: MessageEvent<unknown>) => {
-    if (ev.origin === custodialSignerUrl) {
-      const dataR = signMessageType.decode(ev.data);
-      if (E.isRight(dataR)) {
-        transactionSignature = dataR.right.payload.response.signature;
-        document.getElementById('sign-tx-sig')!.innerText = JSON.stringify(
-          transactionSignature,
-          null,
-          2
-        );
+    window.addEventListener('message', (ev: MessageEvent<unknown>) => {
+      if (ev.origin === custodialSignerUrl) {
+        const dataR = signMessageType.decode(ev.data);
+
+        if (E.isRight(dataR)) {
+          transactionSignature = dataR.right.payload.response.signature;
+          document.getElementById('sign-tx-sig-response')!.innerText =
+            JSON.stringify(transactionSignature, null, 2);
+        }
+
+        const errorDataR = signMessageErrorType.decode(ev.data);
+
+        if (E.isRight(errorDataR)) {
+          const errorCode = errorDataR.right.payload.error.error.code;
+
+          document.getElementById('sign-tx-sig-response')!.innerText =
+            JSON.stringify(errorCode, null, 2);
+        }
       }
-
-      const errorDataR = signMessageErrorType.decode(ev.data);
-
-      if (E.isRight(errorDataR)) {
-        const errorCode = errorDataR.right.payload.error.error.code;
-
-        document.getElementById('sign-tx-sig')!.innerText = JSON.stringify(
-          errorCode,
-          null,
-          2
-        );
-      }
-    }
-  });
+    });
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 async function sendTransaction() {
@@ -356,29 +417,58 @@ async function sendTransaction() {
   }
 
   if (transactionSignature == null || decodedIdToken.payload.eoa == null) {
+    alert('Please sign a transaction first');
     return;
   }
 
+  const tx = rawTransactions[transactionType];
+
+  if (!tx) {
+    throw new Error('Invalid transaction');
+  }
+
   const rawTransactionWithSignature = {
-    ...rawTransactionWithoutSignature,
+    ...tx,
     signature: transactionSignature,
-    from: decodedIdToken.payload.eoa,
-    nonce,
   };
 
   const serializedSignedTransaction = ethers.Transaction.from(
     rawTransactionWithSignature
   ).serialized;
 
-  const transactionResponse = await provider.broadcastTransaction(
-    serializedSignedTransaction
-  );
+  document.getElementById('sending-signed-tx')!.innerHTML = `
+  <div >
+    <pre><code>${JSON.stringify(
+      {
+        raw: rawTransactionWithSignature,
+        serialized: serializedSignedTransaction,
+        transactionType,
+        nonce,
+      },
+      null,
+      2
+    )}</code></pre>
+  </div>
+`;
 
-  document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
-    transactionResponse,
-    null,
-    2
-  );
+  try {
+    const transactionResponse = await providers[
+      transactionType
+    ].broadcastTransaction(serializedSignedTransaction);
+
+    document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+      transactionResponse,
+      null,
+      2
+    );
+  } catch (e) {
+    console.error(e);
+    document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+      e,
+      null,
+      2
+    );
+  }
 }
 
 async function silentLogin() {
