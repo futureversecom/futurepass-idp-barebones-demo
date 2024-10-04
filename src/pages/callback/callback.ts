@@ -274,20 +274,21 @@ async function signTransaction(type: TransactionType = 'eth') {
       alert('not a custodial account');
       return;
     }
-    const transactionCount = await providers[type].getTransactionCount(
+    nonce = await providers[type].getTransactionCount(
       decodedIdToken.payload.eoa
     );
 
-    nonce = transactionCount;
     const { maxFeePerGas, maxPriorityFeePerGas } = await providers[
       type
     ].getFeeData();
+
     if (transactionType === 'root') {
+      const sendAmount = '1';
       const gasLimit = await providers[type].estimateGas({
         to: XRP_PRECOMPILE_ADDRESS,
         data: xrpERC20Precompile.interface.encodeFunctionData('transfer', [
           rootReceiverAddress,
-          1,
+          sendAmount,
         ]),
       });
 
@@ -295,7 +296,7 @@ async function signTransaction(type: TransactionType = 'eth') {
         to: XRP_PRECOMPILE_ADDRESS,
         data: xrpERC20Precompile.interface.encodeFunctionData('transfer', [
           rootReceiverAddress,
-          '1',
+          sendAmount,
         ]),
         chainId: rootChainId,
         gasLimit: gasLimit.toString(),
@@ -304,12 +305,21 @@ async function signTransaction(type: TransactionType = 'eth') {
         nonce,
       };
     } else if (transactionType === 'eth') {
+      const sendAmount = ethers.parseEther('0.0001').toString();
+      const gasLimit = (
+        await providers[type].estimateGas({
+          to: ethReceiverAddress,
+          value: sendAmount,
+        })
+      ).toString();
       rawTransactions.eth = {
         to: ethReceiverAddress,
-        value: ethers.parseEther('0.001'),
+        value: sendAmount,
         chainId: ethChainId,
-        gasLimit: 210000,
-        gasPrice: ethers.parseUnits('10.0', 'gwei'),
+        gasLimit: gasLimit,
+        maxFeePerGas: maxFeePerGas?.toString(),
+        maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
+        nonce: nonce,
       };
     }
 

@@ -1,5 +1,5 @@
 import { base64UrlDecode } from '../../helpers';
-import { ethJsonRpcProviderUrl } from '../../config';
+import { ethChainId, providers, TransactionType } from '../../config';
 import * as ethers from 'ethers';
 
 type Hex = string;
@@ -35,8 +35,7 @@ document.getElementById('signature-data')!.innerHTML = `
     <pre><code>${JSON.stringify(responseJson, null, 2)}</code></pre>
   </div>
 `;
-
-const provider = new ethers.JsonRpcProvider(ethJsonRpcProviderUrl);
+let transactionType: TransactionType;
 
 function handleTransactionResponse(txRes: SignTransactionResponse) {
   const sendTransactionButton = document.createElement('button');
@@ -56,12 +55,20 @@ function handleTransactionResponse(txRes: SignTransactionResponse) {
 
     transactionObj.signature = txRes.result.data.signature;
 
+    const chainId = transactionObj.chainId;
+
+    if (chainId.toString() === ethChainId) {
+      transactionType = 'eth';
+    } else {
+      transactionType = 'root';
+    }
+
     const serializedSignedTransaction =
       ethers.Transaction.from(transactionObj).serialized;
 
-    const transactionResponse = await provider.broadcastTransaction(
-      serializedSignedTransaction
-    );
+    const transactionResponse = await providers[
+      transactionType
+    ].broadcastTransaction(serializedSignedTransaction);
 
     document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
       transactionResponse,
