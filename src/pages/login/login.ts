@@ -12,6 +12,12 @@ document
     login('facebook');
   });
 
+document
+  .getElementById('login-button-roblox')!
+  .addEventListener('click', () => {
+    login('roblox');
+  });
+
 document.getElementById('login-button-email')!.addEventListener('click', () => {
   login('email');
 });

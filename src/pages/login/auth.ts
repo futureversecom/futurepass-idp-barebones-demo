@@ -5,7 +5,7 @@ import {
 } from '../../helpers';
 
 export async function login(
-  loginType: 'google' | 'facebook' | 'email' | 'idp-f' | 'silent',
+  loginType: 'google' | 'facebook' | 'email' | 'idp-f' | 'silent' | 'roblox',
   targetEoa?: string
 ) {
   console.log(`login with ${loginType} called`);
@@ -42,6 +42,9 @@ export async function login(
       break;
     case 'google':
       query = { ...commonParams, login_hint: 'social:google' };
+      break;
+    case 'roblox':
+      query = { ...commonParams, login_hint: 'social:roblox' };
       break;
     case 'silent':
       if (targetEoa) {
