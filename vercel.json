@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/callback",
+      "destination": "/callback.html"
+    },
+    {
+      "source": "/signature-callback",
+      "destination": "/signature-callback.html"
     }
   ]
 }
