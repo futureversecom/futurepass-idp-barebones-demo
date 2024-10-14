@@ -163,7 +163,6 @@ function displayDecodedIdToken(decodedToken: any) {
 
 function logout() {
   localStorage.clear();
-  // demoMixpanel.reset();
   window.location.href = `${identityProviderUri}/logout`;
 }
 
