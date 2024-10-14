@@ -66,9 +66,9 @@ export async function login(
       }
     case 'idp-f':
       // for idp-f we don't pass login_hint just commonParams
-      // query = commonParams;
-      // query = { ...commonParams, login_hint: 'game:unity:' };
-      query = { ...commonParams, login_hint: 'game:unreal:' };
+      query = commonParams;
+    // query = { ...commonParams, login_hint: 'game:unity:' };
+    // query = { ...commonParams, login_hint: 'game:unreal:' };
   }
 
   const queryString = new URLSearchParams(query).toString();

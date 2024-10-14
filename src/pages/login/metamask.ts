@@ -50,10 +50,7 @@ async function loginWithMetamask() {
       domain: msg.domain,
       signature: signature,
     });
-    // const login_hint = "eoa:" + siweParams.toString();
-    // const login_hint = 'metamask:' + siweParams.toString();
-    const login_hint = 'coinbase:' + siweParams.toString();
-    // const login_hint = 'walletconnect:' + siweParams.toString();
+    const login_hint = 'eoa:' + siweParams.toString();
 
     const { codeVerifier, codeChallenge } =
       await generateCodeVerifierAndChallenge();
@@ -90,6 +87,7 @@ async function loginWithMetamask() {
       nonce,
       login_hint,
       device_id,
+      web3_connector_id: 'metamask',
     };
 
     const queryString = new URLSearchParams(params).toString();
