@@ -8,7 +8,8 @@ import { demoMixpanel } from '../mixpanel/mixpanel';
 
 export async function login(
   loginType: 'google' | 'facebook' | 'email' | 'idp-f' | 'silent',
-  targetEoa?: string
+  targetEoa?: string,
+  targetGameEngine?: 'unity' | 'unreal'
 ) {
   console.log(`login with ${loginType} called`);
   const { codeVerifier, codeChallenge } =
@@ -66,9 +67,18 @@ export async function login(
       }
     case 'idp-f':
       // for idp-f we don't pass login_hint just commonParams
-      query = commonParams;
-    // query = { ...commonParams, login_hint: 'game:unity:' };
-    // query = { ...commonParams, login_hint: 'game:unreal:' };
+      const login_hint =
+        targetGameEngine === 'unity'
+          ? 'game:unity:'
+          : targetGameEngine === 'unreal'
+          ? 'game:unreal:'
+          : undefined;
+
+      if (login_hint) {
+        query = { ...commonParams, login_hint };
+      } else {
+        query = commonParams;
+      }
   }
 
   const queryString = new URLSearchParams(query).toString();
