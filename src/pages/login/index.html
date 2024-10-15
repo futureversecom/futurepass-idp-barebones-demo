@@ -42,6 +42,13 @@
         max-width: 80%;
         text-align: center;
       }
+
+      div#login-button-idp-front-end-login{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
     </style>
   </head>
   <body>
@@ -50,8 +57,17 @@
     <button id="login-button-google">Login with Google</button>
     <button id="login-button-facebook">Login with Facebook</button>
     <button id="login-button-metamask">Login with MetaMask</button>
-    <button id="login-button-idp-front-end-login">
-      Login with FuturePass IDP Front End (Games)
-    </button>
+    <div id="login-button-idp-front-end-login">
+      <button id="login-button-idp-front-end-login-general">
+        Login with FuturePass IDP Front End (Games - Gneral)
+      </button>
+      <button id="login-button-idp-front-end-login-unity">
+        Login with FuturePass IDP Front End (Games - Unity)
+      </button>
+      <button id="login-button-idp-front-end-login-unreal">
+        Login with FuturePass IDP Front End (Games - Unreal)
+      </button>
+    </div>
+
   </body>
 </html>

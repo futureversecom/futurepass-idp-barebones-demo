@@ -53,6 +53,8 @@ To initiate the authentication process, your application needs to redirect the u
 3. **Build Authorization URL:**
    Include required parameters such as `response_type`, `client_id`, `redirect_uri`, `scope`, `code_challenge`, `code_challenge_method`, `state`, and `nonce`.
 
+   Include optional parameters such as `web3_connector_id`
+
 ### Example Authorization URL:
 
 ```js
@@ -65,6 +67,7 @@ const params = {
   code_challenge_method: 'S256',
   state: state,
   nonce: nonce,
+  web3_connector_id: 'metamask',
 };
 
 const queryString = new URLSearchParams(params).toString();
@@ -88,18 +91,21 @@ window.location.href = url;
 | `nonce`                 | A random string to associate with the ID token. Helps prevent replay attacks.                          |
 | `response_mode`         | Specifies how the result should be returned. For this example, use `query`.                            |
 | `prompt`                | Specifies whether the user should be prompted for reauthentication.                                    |
+| `web3_connector_id`     | An optional parameter used to track which web3 wallect is used to login                                |
 
 #### Variable Parameter - `login_hint`
 
 The `login_hint` parameter can take various values depending on the requested login type
 
-| `login_hint` value   | Login type                                     |
-| -------------------- | ---------------------------------------------- |
-| `email:`             | Email login                                    |
-| `social:google`      | Google login                                   |
-| `social:facebook:`   | Facebook login                                 |
-| `eoa:<siwe-message>` | MetaMask login                                 |
-| undefined            | IDP-F login (Games), no `login_hint` is passed |
+| `login_hint` value   | Login type                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| `email:`             | Email login                                                                                              |
+| `social:google`      | Google login                                                                                             |
+| `social:facebook:`   | Facebook login                                                                                           |
+| `eoa:<siwe-message>` | MetaMask login                                                                                           |
+| `game:unreal:`       | IDP-F login (Games), the `login_hint` indicate that the user login from the game using the unreal engine |
+| `game:unity:`        | IDP-F login (Games), the `login_hint` indicate that the user login from the game using the unity engine  |
+| undefined            | IDP-F login (Games), no `login_hint` is passed, the game engine is not tracked                           |
 
 ### Example Authorization Request URL
 
@@ -282,7 +288,7 @@ async function signTransaction() {
   //   account: fromAccount,
   //   transaction: serializedUnsignedTransaction,
   //   callbackUrl: 'http://localhost:3000/signature-callback' // <- your game callback URL here
-  // }; 
+  // };
 
   const id = 'client:2'; // must be formatted as `client:${ an identifier number }`
   const tag = 'fv/sign-tx'; // do not change this

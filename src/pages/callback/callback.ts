@@ -13,6 +13,7 @@ import { signMessageErrorType, signMessageType } from '../../types';
 import { either as E } from 'fp-ts';
 import { ethers } from 'ethers';
 import { login } from '../login/auth';
+import { demoMixpanel } from '../mixpanel/mixpanel';
 
 document
   .getElementById('sign-message-button')!
@@ -117,6 +118,8 @@ async function handleCallback() {
 
   displayTokenResponse(tokenEndpointResponse);
   displayDecodedIdToken(decodedIdToken);
+
+  trackEevent();
 }
 
 function verifyState(state: string) {
@@ -381,4 +384,19 @@ async function sendTransaction() {
 
 async function silentLogin() {
   await login('silent', decodedIdToken.payload.eoa);
+}
+
+function trackEevent() {
+  const savedDeviceId = localStorage.getItem('device_id');
+  const distinctId = decodedIdToken.payload.futurepass.toLowerCase();
+
+  // demoMixpanel.identify(distinctId);
+
+  demoMixpanel.track('user_login_callback', {
+    $distinct_id: distinctId,
+    $device_id: savedDeviceId,
+    user_login_at: Date.now(),
+  });
+
+  console.log(savedDeviceId, distinctId);
 }

@@ -15,3 +15,6 @@ export const alchemyJsonRpcProviderUrl = `https://rpc.sepolia.org/`; // add your
 export const transaction_to_address =
   '0xa4593663bD1c96dc04799b4f21f2F8ef6834f874'; // make sure you have enough balance in this wallet
 export const transaction_chain_id = '11155111';
+
+// Used for mixpanel tracking
+export const mixpanelProjectToken = 'dfb084e3ff87f5aed5d21cc88ec38a7e';
