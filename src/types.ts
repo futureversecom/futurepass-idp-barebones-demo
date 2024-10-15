@@ -1,5 +1,5 @@
-import { either as E } from 'fp-ts';
-import * as t from 'io-ts';
+import { either as E } from 'fp-ts'
+import * as t from 'io-ts'
 
 export const signMessageType = t.strict({
   id: t.string,
@@ -10,9 +10,9 @@ export const signMessageType = t.strict({
     }),
     tag: t.string,
   }),
-});
+})
 
-export type signMessageType = t.TypeOf<typeof signMessageType>;
+export type signMessageType = t.TypeOf<typeof signMessageType>
 
 export const signMessageErrorType = t.strict({
   id: t.string,
@@ -26,6 +26,6 @@ export const signMessageErrorType = t.strict({
     }),
     tag: t.string,
   }),
-});
+})
 
-export type signMessageErrorType = t.TypeOf<typeof signMessageErrorType>;
+export type signMessageErrorType = t.TypeOf<typeof signMessageErrorType>

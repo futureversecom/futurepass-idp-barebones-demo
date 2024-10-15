@@ -1,10 +1,10 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
-const buildPath = path.resolve(__dirname, 'dist');
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
+const buildPath = path.resolve(__dirname, 'dist')
 
 module.exports = (env, argv) => {
-  const isDevelopment = argv.mode === 'development';
+  const isDevelopment = argv.mode === 'development'
 
   return {
     mode: 'development',
@@ -67,5 +67,5 @@ module.exports = (env, argv) => {
       new NodePolyfillPlugin(),
     ],
     watch: isDevelopment,
-  };
-};
+  }
+}

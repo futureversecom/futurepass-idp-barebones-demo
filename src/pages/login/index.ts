@@ -1,3 +1,3 @@
-import './metamask';
-import './login';
-import './auth';
+import './metamask'
+import './login'
+import './auth'
