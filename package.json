@@ -1,6 +1,6 @@
 {
   "name": "futurepass-idp-barebones-demo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A demo TypeScript app for FuturePass Identity Provider authentication.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "webpack serve"
   },
   "keywords": [],
-  "author": "Chris Czurylo",
+  "author": "The FuturePass team",
   "license": "MIT",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
@@ -16,6 +16,7 @@
     "fp-ts": "^2.16.6",
     "html-webpack-plugin": "^5.6.0",
     "io-ts": "^2.2.21",
+    "prettier": "^3.3.3",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
@@ -23,6 +24,7 @@
     "webpack-dev-server": "^5.0.4"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.7.2",
     "ethers": "^6.3.0",
     "jose": "^5.8.0",
     "mixpanel-browser": "^2.55.1",

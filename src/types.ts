@@ -1,7 +1,6 @@
-import { either as E } from 'fp-ts';
-import * as t from 'io-ts';
+import * as t from 'io-ts'
 
-export const signMessageType = t.strict({
+export const SignMessage = t.strict({
   id: t.string,
   tag: t.string,
   payload: t.strict({
@@ -10,11 +9,11 @@ export const signMessageType = t.strict({
     }),
     tag: t.string,
   }),
-});
+})
 
-export type signMessageType = t.TypeOf<typeof signMessageType>;
+export type SignMessage = t.TypeOf<typeof SignMessage>
 
-export const signMessageErrorType = t.strict({
+export const SignMessageError = t.strict({
   id: t.string,
   tag: t.string,
   payload: t.strict({
@@ -26,6 +25,12 @@ export const signMessageErrorType = t.strict({
     }),
     tag: t.string,
   }),
-});
+})
 
-export type signMessageErrorType = t.TypeOf<typeof signMessageErrorType>;
+export type SignMessageError = t.TypeOf<typeof SignMessageError>
+
+export type DecodedIdToken = {
+  payload: any
+  header?: any
+  signature?: string
+}

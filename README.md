@@ -68,11 +68,11 @@ const params = {
   state: state,
   nonce: nonce,
   web3_connector_id: 'metamask',
-};
+}
 
-const queryString = new URLSearchParams(params).toString();
-const url = `${authorizationEndpoint}?${queryString}`;
-window.location.href = url;
+const queryString = new URLSearchParams(params).toString()
+const url = `${authorizationEndpoint}?${queryString}`
+window.location.href = url
 ```
 
 ### Authorization Request Parameters
@@ -142,22 +142,22 @@ After the user authenticates, they are redirected back to your application with 
 ### Example Callback Handling:
 
 ```js
-const params = new URLSearchParams(window.location.search);
-const code = params.get('code');
-const state = params.get('state');
+const params = new URLSearchParams(window.location.search)
+const code = params.get('code')
+const state = params.get('state')
 
 if (state !== savedState) {
-  throw new Error('Invalid state');
+  throw new Error('Invalid state')
 }
 
-const codeVerifier = localStorage.getItem('code_verifier');
+const codeVerifier = localStorage.getItem('code_verifier')
 const body = new URLSearchParams({
   grant_type: 'authorization_code',
   code: code,
   redirect_uri: redirectUri,
   client_id: clientId,
   code_verifier: codeVerifier,
-});
+})
 
 const response = await fetch(tokenEndpoint, {
   method: 'POST',
@@ -165,12 +165,12 @@ const response = await fetch(tokenEndpoint, {
     'Content-Type': 'application/x-www-form-urlencoded',
   },
   body: body.toString(),
-});
+})
 
-const tokenResponse = await response.json();
-localStorage.setItem('access_token', tokenResponse.access_token);
-localStorage.setItem('refresh_token', tokenResponse.refresh_token);
-localStorage.setItem('id_token', tokenResponse.id_token);
+const tokenResponse = await response.json()
+localStorage.setItem('access_token', tokenResponse.access_token)
+localStorage.setItem('refresh_token', tokenResponse.refresh_token)
+localStorage.setItem('id_token', tokenResponse.id_token)
 ```
 
 ### Token Request Parameters
@@ -250,7 +250,7 @@ To use custodial accounts to complete transactions, tt requires users to impleme
 #### Step 1: Get Signature by Communicating with Custodial Signer
 
 ```javascript
-import { ethers } from 'ethers';
+import { ethers } from 'ethers'
 
 const rawTransactionWithoutSignature = {
   to: 'the destination wallet address',
@@ -258,30 +258,30 @@ const rawTransactionWithoutSignature = {
   chainId: 'the chain id',
   gasLimit: 210000,
   gasPrice: ethers.parseUnits('10.0', 'gwei'),
-};
-let nonce = 0;
+}
+let nonce = 0
 
-const custodialSignerUrl = 'the custodial signer service url';
+const custodialSignerUrl = 'the custodial signer service url'
 
 async function signTransaction() {
   if (typeof window === 'undefined') {
-    return;
+    return
   }
 
-  const fromAccount = 'your own wallet address';
+  const fromAccount = 'your own wallet address'
 
-  const transactionCount = await provider.getTransactionCount(fromAccount);
-  nonce = transactionCount + 1;
+  const transactionCount = await provider.getTransactionCount(fromAccount)
+  nonce = transactionCount + 1
 
   const serializedUnsignedTransaction = ethers.Transaction.from({
     ...rawTransactionWithoutSignature,
     nonce,
-  }).unsignedSerialized;
+  }).unsignedSerialized
 
   const signTransactionPayload = {
     account: fromAccount,
     transaction: serializedUnsignedTransaction,
-  };
+  }
 
   // If using native clients (games) payload can include callbackUrl to which signature will be sent
   // const signTransactionPayload = {
@@ -290,32 +290,32 @@ async function signTransaction() {
   //   callbackUrl: 'http://localhost:3000/signature-callback' // <- your game callback URL here
   // };
 
-  const id = 'client:2'; // must be formatted as `client:${ an identifier number }`
-  const tag = 'fv/sign-tx'; // do not change this
+  const id = 'client:2' // must be formatted as `client:${ an identifier number }`
+  const tag = 'fv/sign-tx' // do not change this
 
   const encodedPayload = {
     id,
     tag,
     payload: signTransactionPayload,
-  };
+  }
 
   window.open(
     `${custodialSignerUrl}?request=${base64UrlEncode(
-      JSON.stringify(encodedPayload)
+      JSON.stringify(encodedPayload),
     )}`,
     'futureverse_wallet', // don't change this
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0'
-  );
+    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0',
+  )
 
   window.addEventListener('message', (ev) => {
     if (ev.origin === custodialSignerUrl) {
-      const dataR = signMessageType.decode(ev.data);
+      const dataR = signMessageType.decode(ev.data)
 
       if (E.isRight(dataR)) {
-        transactionSignature = dataR.right.payload.response.signature;
+        transactionSignature = dataR.right.payload.response.signature
       }
     }
-  });
+  })
 }
 ```
 
@@ -396,8 +396,8 @@ To log a user out of your application, you need to clear their session data and 
 
 ```js
 function logout() {
-  localStorage.clear();
-  window.location.href = `${identityProviderUri}/logout`;
+  localStorage.clear()
+  window.location.href = `${identityProviderUri}/logout`
 }
 ```
 
