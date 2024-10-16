@@ -1,15 +1,16 @@
+import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { either as E } from 'fp-ts'
 import {
+  chainId,
   custodialSignerUrl,
   jsonRpcProviderUrl,
-  transaction_chain_id,
-  transaction_to_address,
+  transactionToAddress,
 } from '../../config'
 import { base64UrlEncode } from '../../helpers'
 import { DecodedIdToken, SignMessage, SignMessageError } from '../../types'
 
-const provider = new ethers.JsonRpcProvider(jsonRpcProviderUrl)
+const provider = new JsonRpcProvider(jsonRpcProviderUrl)
 let transactionSignature: string | undefined
 let nonce = 0
 let rawTransactionWithoutSignature: object | null = null
@@ -107,31 +108,23 @@ export async function signTransaction(
   }
 
   // Fetch the current nonce
-  nonce = await provider.getTransactionCount(fromAccount)
+  const nonce = await provider.getTransactionCount(fromAccount)
+  const fees = await provider.getFeeData()
 
-  // Fetch current gas price
-  const gasPrice = await provider.getFeeData()
-
+  // EIP1559 Transaction
   rawTransactionWithoutSignature = {
-    to: transaction_to_address,
+    to: transactionToAddress,
     value: ethers.parseEther('0.001'),
-    chainId: transaction_chain_id,
-    gasLimit: 21000, // Only works for simple transfers
-    maxFeePerGas: gasPrice.maxFeePerGas,
-    maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas,
-    nonce: nonce,
+    chainId: chainId,
+    gasLimit: 21_000, // Only works for simple transfers
+    maxFeePerGas: fees.lastBaseFeePerGas!.toString(),
+    maxPriorityFeePerGas: 0,
+    nonce,
   }
 
-  const transactionCount = await provider.getTransactionCount(
-    decodedIdToken.payload.eoa,
-  )
-
-  nonce = transactionCount + 1
-
-  const serializedUnsignedTransaction = ethers.Transaction.from({
-    ...rawTransactionWithoutSignature,
-    nonce,
-  }).unsignedSerialized
+  const serializedUnsignedTransaction = ethers.Transaction.from(
+    rawTransactionWithoutSignature,
+  ).unsignedSerialized
 
   if (typeof window === 'undefined') {
     return
@@ -214,7 +207,6 @@ export async function sendTransaction(decodedIdToken: DecodedIdToken) {
     ...rawTransactionWithoutSignature,
     signature: transactionSignature,
     from: decodedIdToken.payload.eoa,
-    nonce,
   }
 
   const serializedSignedTransaction = ethers.Transaction.from(
@@ -222,9 +214,10 @@ export async function sendTransaction(decodedIdToken: DecodedIdToken) {
   ).serialized
 
   try {
-    const transactionResponse = await provider.broadcastTransaction(
+    const transactionResponse = await provider.sendTransaction(
       serializedSignedTransaction,
     )
+
     document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
       transactionResponse,
       null,

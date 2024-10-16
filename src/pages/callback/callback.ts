@@ -148,6 +148,7 @@ const signTxCallbackUrl = (
 document
   .getElementById('sign-tx-button')!
   .addEventListener('click', async () => {
+    document.getElementById('send-tx-resp')!.innerText = ''
     await signTransaction(
       decodedIdToken,
       signTxCallbackUrl != null &&

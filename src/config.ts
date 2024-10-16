@@ -13,10 +13,9 @@ export const custodialSignerUrl = `https://signer.passonline.cloud`
 export const jsonRpcProviderUrl = `https://porcini.rootnet.app/archive` // TRN Porcini
 
 // Used for test transaction
-export const transaction_to_address =
-  '0xa4593663bD1c96dc04799b4f21f2F8ef6834f874' // make sure you have enough balance in this wallet
-// export const transaction_chain_id = "11155111"; // Ethereum Sepolia
-export const transaction_chain_id = '7672' // TRN Porcini
+export const transactionToAddress = '0xa4593663bD1c96dc04799b4f21f2F8ef6834f874' // make sure you have enough balance in this wallet
+// export const chainId = "11155111"; // Ethereum Sepolia
+export const chainId = '7672' // TRN Porcini
 
 // Used for mixpanel tracking
 export const mixpanelProjectToken = 'dfb084e3ff87f5aed5d21cc88ec38a7e'
