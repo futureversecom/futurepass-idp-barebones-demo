@@ -12,6 +12,20 @@ document
     login('facebook');
   });
 
+document.getElementById('login-button-apple')!.addEventListener('click', () => {
+  login('apple');
+});
+document
+  .getElementById('login-button-discord')!
+  .addEventListener('click', () => {
+    login('discord');
+  });
+document
+  .getElementById('login-button-roblox')!
+  .addEventListener('click', () => {
+    login('roblox');
+  });
+
 document.getElementById('login-button-email')!.addEventListener('click', () => {
   login('email');
 });
