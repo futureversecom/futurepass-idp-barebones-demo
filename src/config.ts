@@ -29,11 +29,6 @@ export const rootJsonRpcProviderUrl = getOrThrowFromEnv('ROOT_JSON_RPC_URL');
 export const rootReceiverAddress = getOrThrowFromEnv('ROOT_RECEIVER_ADDRESS');
 export const rootChainId = getOrThrowFromEnv('ROOT_CHAIN_ID');
 
-// Used for test transaction
-export const transaction_to_address =
-  '0xa4593663bD1c96dc04799b4f21f2F8ef6834f874'; // make sure you have enough balance in this wallet
-export const transaction_chain_id = '11155111';
-
 export const ERC20_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 value)',
   'event Approval(address indexed owner, address indexed spender, uint256 value)',
