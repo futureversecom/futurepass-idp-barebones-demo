@@ -65,7 +65,7 @@
       <h3>Custodial account Sign Message</h3>
       <div>
         Signature Callback URL:
-        <input type="checkbox" id="sign-message-callback-enabled" checked />
+        <input type="checkbox" id="sign-message-callback-enabled" />
         <input
           type="url"
           id="sign-message-callback-url"
@@ -101,7 +101,7 @@
       <div>
         <div>
           Signature Callback URL:
-          <input type="checkbox" id="sign-tx-callback-enabled" checked />
+          <input type="checkbox" id="sign-tx-callback-enabled" />
           <input
             type="url"
             id="sign-tx-callback-url"
@@ -115,16 +115,31 @@
             window.addEventListener('message',eventHandler)
           </p>
         </div>
-        <button id="sign-tx-button">Sign Transaction</button>
-        <button id="send-tx-button">Send Transaction</button>
+        <hr />
+        <strong>ETH Transaction</strong><br />
+        1. <button id="sign-eth-tx-button">Sign ETH Transaction</button>
+        <br />
+        2. <button id="send-eth-tx-button">Send ETH Transaction</button>
+        <hr />
+        <strong>ROOT Transaction</strong><br />
+        1. <button id="sign-root-tx-button">Sign Root Transaction</button>
+        <br />
+        2. <button id="send-root-tx-button">Send Root Transaction</button>
+        <hr />
       </div>
 
       <div style="margin-top: 15px">
-        <div>payload</div>
+        <div>Transaction</div>
+        <div id="raw-transaction"></div>
+        <div>Signer payload</div>
         <div id="sign-tx-sig"></div>
+        <div>Signer response</div>
+        <div id="sign-tx-sig-response"></div>
       </div>
 
       <div style="margin-top: 15px">
+        <div>Sending signed tx response:</div>
+        <div id="sending-signed-tx"></div>
         <div>Send tx response:</div>
         <div id="send-tx-resp"></div>
       </div>

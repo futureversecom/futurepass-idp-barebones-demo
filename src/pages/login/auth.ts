@@ -7,7 +7,15 @@ import {
 import { demoMixpanel } from '../mixpanel/mixpanel'
 
 export async function login(
-  loginType: 'google' | 'facebook' | 'email' | 'idp-f' | 'silent',
+  loginType:
+    | 'google'
+    | 'facebook'
+    | 'apple'
+    | 'discord'
+    | 'roblox'
+    | 'email'
+    | 'idp-f'
+    | 'silent',
   targetEoa?: string,
   targetGameEngine?: 'unity' | 'unreal',
 ) {
@@ -58,6 +66,15 @@ export async function login(
       break
     case 'google':
       query = { ...commonParams, login_hint: 'social:google' }
+      break
+    case 'apple':
+      query = { ...commonParams, login_hint: 'social:apple' }
+      break
+    case 'discord':
+      query = { ...commonParams, login_hint: 'social:discord' }
+      break
+    case 'roblox':
+      query = { ...commonParams, login_hint: 'social:roblox' }
       break
     case 'silent':
       if (targetEoa) {

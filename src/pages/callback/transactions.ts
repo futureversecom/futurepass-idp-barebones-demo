@@ -1,18 +1,21 @@
-import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { either as E } from 'fp-ts'
 import {
-  chainId,
+  rootChainId,
+  ethChainId,
   custodialSignerUrl,
-  jsonRpcProviderUrl,
-  transactionToAddress,
+  providers,
+  rootReceiverAddress,
+  ethReceiverAddress,
+  identityProviderUri,
+  XRP_PRECOMPILE_ADDRESS,
+  xrpERC20Precompile,
 } from '../../config'
 import { base64UrlEncode } from '../../helpers'
 import { DecodedIdToken, SignMessage, SignMessageError } from '../../types'
+import { v4 as uuidV4 } from 'uuid'
 
-const provider = new JsonRpcProvider(jsonRpcProviderUrl)
 let transactionSignature: string | undefined
-let nonce = 0
 let rawTransactionWithoutSignature: object | null = null
 
 export function signMessage(
@@ -36,9 +39,10 @@ export function signMessage(
     account: decodedIdToken.payload.eoa,
     message,
     callbackUrl,
+    idpUrl: identityProviderUri,
   }
 
-  const id = 'client:1'
+  const id = `client:${uuidV4()}`
   const tag = 'fv/sign-msg'
 
   const encodedPayload = {
@@ -65,7 +69,7 @@ export function signMessage(
   window.open(
     signerUrl,
     'futureverse_wallet',
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0',
+    'popup,right=0,width=290,height=480,menubar=no,toolbar=no,location=no,status=0',
   )
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
@@ -96,7 +100,7 @@ export function signMessage(
   })
 }
 
-export async function signTransaction(
+export async function signEthTransaction(
   decodedIdToken: DecodedIdToken,
   callbackUrl?: string,
 ) {
@@ -108,17 +112,25 @@ export async function signTransaction(
   }
 
   // Fetch the current nonce
-  const nonce = await provider.getTransactionCount(fromAccount)
-  const fees = await provider.getFeeData()
+  const nonce = await providers.eth.getTransactionCount(fromAccount)
+  const sendAmount = ethers.parseEther('0.0001').toString()
+
+  const gasLimit = await providers.eth.estimateGas({
+    to: ethReceiverAddress,
+    value: sendAmount,
+  })
+
+  const { maxFeePerGas, maxPriorityFeePerGas } =
+    await providers.eth.getFeeData()
 
   // EIP1559 Transaction
   rawTransactionWithoutSignature = {
-    to: transactionToAddress,
-    value: ethers.parseEther('0.001'),
-    chainId: chainId,
-    gasLimit: 21_000, // Only works for simple transfers
-    maxFeePerGas: fees.lastBaseFeePerGas!.toString(),
-    maxPriorityFeePerGas: 0,
+    to: ethReceiverAddress,
+    value: sendAmount,
+    chainId: ethChainId,
+    gasLimit: gasLimit.toString(),
+    maxFeePerGas: maxFeePerGas?.toString(),
+    maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
     nonce,
   }
 
@@ -130,13 +142,27 @@ export async function signTransaction(
     return
   }
 
+  document.getElementById('raw-transaction')!.innerHTML = `
+  <div >
+    <pre><code>${JSON.stringify(
+      {
+        raw: rawTransactionWithoutSignature,
+        serialized: serializedUnsignedTransaction,
+      },
+      null,
+      2,
+    )}</code></pre>
+  </div>
+  `
+
   const signTransactionPayload = {
     account: fromAccount,
     transaction: serializedUnsignedTransaction,
+    idpUrl: identityProviderUri,
     callbackUrl,
   }
 
-  const id = 'client:2'
+  const id = `client:${uuidV4()}`
   const tag = 'fv/sign-tx'
 
   const encodedPayload = {
@@ -163,7 +189,7 @@ export async function signTransaction(
   window.open(
     signerUrl,
     'futureverse_wallet',
-    'popup,right=0,width=290,height=286,menubar=no,toolbar=no,location=no,status=0',
+    'popup,right=0,width=290,height=486,menubar=no,toolbar=no,location=no,status=0',
   )
 
   window.addEventListener('message', (ev: MessageEvent<unknown>) => {
@@ -171,11 +197,8 @@ export async function signTransaction(
       const dataR = SignMessage.decode(ev.data)
       if (E.isRight(dataR)) {
         transactionSignature = dataR.right.payload.response.signature
-        document.getElementById('sign-tx-sig')!.innerText = JSON.stringify(
-          transactionSignature,
-          null,
-          2,
-        )
+        document.getElementById('sign-tx-sig-response')!.innerText =
+          JSON.stringify(transactionSignature, null, 2)
       }
 
       const errorDataR = SignMessageError.decode(ev.data)
@@ -193,7 +216,7 @@ export async function signTransaction(
   })
 }
 
-export async function sendTransaction(decodedIdToken: DecodedIdToken) {
+export async function sendEthTransaction(decodedIdToken: DecodedIdToken) {
   if (decodedIdToken.payload.custodian !== 'fv') {
     alert('not a custodial account')
     return
@@ -213,8 +236,195 @@ export async function sendTransaction(decodedIdToken: DecodedIdToken) {
     rawTransactionWithSignature,
   ).serialized
 
+  document.getElementById('sending-signed-tx')!.innerHTML = `
+  <div >
+    <pre><code>${JSON.stringify(
+      {
+        raw: rawTransactionWithSignature,
+        serialized: serializedSignedTransaction,
+      },
+      null,
+      2,
+    )}</code></pre>
+  </div>
+`
+
   try {
-    const transactionResponse = await provider.sendTransaction(
+    const transactionResponse = await providers.eth.broadcastTransaction(
+      serializedSignedTransaction,
+    )
+
+    document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+      transactionResponse,
+      null,
+      2,
+    )
+
+    // Wait for the transaction to be mined
+    const receipt = await transactionResponse.wait()
+    console.log('Transaction mined:', receipt)
+    document.getElementById('send-tx-resp')!.innerText +=
+      '\n\nTransaction mined:\n' + JSON.stringify(receipt, null, 2)
+  } catch (error) {
+    console.error('Error sending transaction:', error)
+    document.getElementById('send-tx-resp')!.innerText =
+      'Error sending transaction: ' + JSON.stringify(error, null, 2)
+  }
+}
+
+export async function signRootTransaction(
+  decodedIdToken: DecodedIdToken,
+  callbackUrl?: string,
+) {
+  const fromAccount = decodedIdToken.payload.eoa
+
+  if (decodedIdToken.payload.custodian !== 'fv') {
+    alert('not a custodial account')
+    return
+  }
+  const nonce = await providers.root.getTransactionCount(fromAccount)
+
+  const sendAmount = '1'
+  const gasLimit = await providers.root.estimateGas({
+    to: XRP_PRECOMPILE_ADDRESS,
+    data: xrpERC20Precompile.interface.encodeFunctionData('transfer', [
+      rootReceiverAddress,
+      sendAmount,
+    ]),
+  })
+
+  const { maxFeePerGas, maxPriorityFeePerGas } =
+    await providers.root.getFeeData()
+
+  rawTransactionWithoutSignature = {
+    to: XRP_PRECOMPILE_ADDRESS,
+    data: xrpERC20Precompile.interface.encodeFunctionData('transfer', [
+      rootReceiverAddress,
+      sendAmount,
+    ]),
+    chainId: rootChainId,
+    gasLimit: gasLimit.toString(),
+    maxFeePerGas: maxFeePerGas?.toString(),
+    maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
+    nonce: nonce,
+  }
+
+  const serializedUnsignedTransaction = ethers.Transaction.from(
+    rawTransactionWithoutSignature,
+  ).unsignedSerialized
+
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  document.getElementById('raw-transaction')!.innerHTML = `
+  <div >
+    <pre><code>${JSON.stringify(
+      {
+        raw: rawTransactionWithoutSignature,
+        serialized: serializedUnsignedTransaction,
+      },
+      null,
+      2,
+    )}</code></pre>
+  </div>
+  `
+
+  const signTransactionPayload = {
+    account: fromAccount,
+    transaction: serializedUnsignedTransaction,
+    idpUrl: identityProviderUri,
+    callbackUrl,
+  }
+
+  const id = `client:${uuidV4()}`
+  const tag = 'fv/sign-tx'
+
+  const encodedPayload = {
+    id,
+    tag,
+    payload: signTransactionPayload,
+  }
+
+  const signerUrl =
+    custodialSignerUrl +
+    '?request=' +
+    base64UrlEncode(JSON.stringify(encodedPayload))
+
+  document.getElementById('sign-tx-sig')!.innerHTML = `
+    <div >
+      <pre><code>${JSON.stringify(
+        { encodedPayload, signerUrl },
+        null,
+        2,
+      )}</code></pre>
+    </div>
+  `
+
+  window.open(
+    signerUrl,
+    'futureverse_wallet',
+    'popup,right=0,width=290,height=486,menubar=no,toolbar=no,location=no,status=0',
+  )
+
+  window.addEventListener('message', (ev: MessageEvent<unknown>) => {
+    if (ev.origin === custodialSignerUrl) {
+      const dataR = SignMessage.decode(ev.data)
+      if (E.isRight(dataR)) {
+        transactionSignature = dataR.right.payload.response.signature
+        document.getElementById('sign-tx-sig-response')!.innerText =
+          JSON.stringify(transactionSignature, null, 2)
+      }
+
+      const errorDataR = SignMessageError.decode(ev.data)
+
+      if (E.isRight(errorDataR)) {
+        const errorCode = errorDataR.right.payload.error.error.code
+
+        document.getElementById('sign-tx-sig')!.innerText = JSON.stringify(
+          errorCode,
+          null,
+          2,
+        )
+      }
+    }
+  })
+}
+
+export async function sendRootTransaction(decodedIdToken: DecodedIdToken) {
+  if (decodedIdToken.payload.custodian !== 'fv') {
+    alert('not a custodial account')
+    return
+  }
+
+  if (transactionSignature == null || decodedIdToken.payload.eoa == null) {
+    return
+  }
+
+  const rawTransactionWithSignature = {
+    ...rawTransactionWithoutSignature,
+    signature: transactionSignature,
+  }
+
+  const serializedSignedTransaction = ethers.Transaction.from(
+    rawTransactionWithSignature,
+  ).serialized
+
+  document.getElementById('sending-signed-tx')!.innerHTML = `
+  <div >
+    <pre><code>${JSON.stringify(
+      {
+        raw: rawTransactionWithSignature,
+        serialized: serializedSignedTransaction,
+      },
+      null,
+      2,
+    )}</code></pre>
+  </div>
+`
+
+  try {
+    const transactionResponse = await providers.root.broadcastTransaction(
       serializedSignedTransaction,
     )
 

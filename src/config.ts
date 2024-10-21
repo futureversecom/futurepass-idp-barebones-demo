@@ -1,21 +1,69 @@
-export const clientId = '8XPY4Vnc6BBn_4XNBYk0P' // This is a test Client ID, preferably use your own
-export const accessToken = 'G-Y5OwG_2NDRLFTpLpyjX92WyLMia2t0PcmPboGeMqi' // This is a test /manageclients Access Token, preferably use your own
-export const redirectUri = 'http://localhost:3000/callback' // Ensure this matches the redirect_uri defined on /manageclients
+import { ethers, Contract } from 'ethers'
 
-export const identityProviderUri = 'https://login.passonline.cloud' // login.passonline.dev -> DEV, login.passonline.cloud -> STAGING, login.pass.online -> PRODUCTION
+function getOrThrowFromEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`)
+  }
+  return value
+}
+
+export const clientId = getOrThrowFromEnv('CLIENT_ID')
+export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
+export const redirectUri = getOrThrowFromEnv('CLIENT_REDIRECT_URI')
+
+export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`
 export const tokenEndpoint = `${identityProviderUri}/token`
 
-export const custodialSignerUrl = `https://signer.passonline.cloud`
+export const custodialSignerUrl = getOrThrowFromEnv('CUSTODIAL_SIGNER_URL')
 
-// export const jsonRpcProviderUrl = `https://rpc.sepolia.org/`; // Ethereum Sepolia
-export const jsonRpcProviderUrl = `https://porcini.rootnet.app/archive` // TRN Porcini
-
-// Used for test transaction
-export const transactionToAddress = '0xa4593663bD1c96dc04799b4f21f2F8ef6834f874' // make sure you have enough balance in this wallet
-// export const chainId = "11155111"; // Ethereum Sepolia
-export const chainId = '7672' // TRN Porcini
+export const ethJsonRpcProviderUrl = getOrThrowFromEnv('ETH_JSON_RPC_URL')
+export const ethReceiverAddress = getOrThrowFromEnv('ETH_RECEIVER_ADDRESS')
+export const ethChainId = getOrThrowFromEnv('ETH_CHAIN_ID')
 
 // Used for mixpanel tracking
-export const mixpanelProjectToken = 'dfb084e3ff87f5aed5d21cc88ec38a7e'
+export const mixpanelProjectToken = getOrThrowFromEnv('MIXPANEL_PROJECT_TOKEN')
+
+export const rootJsonRpcProviderUrl = getOrThrowFromEnv('ROOT_JSON_RPC_URL')
+export const rootReceiverAddress = getOrThrowFromEnv('ROOT_RECEIVER_ADDRESS')
+export const rootChainId = getOrThrowFromEnv('ROOT_CHAIN_ID')
+
+export const ERC20_ABI = [
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+  'event Approval(address indexed owner, address indexed spender, uint256 value)',
+  'function approve(address spender, uint256 amount) public returns (bool)',
+  'function allowance(address owner, address spender) public view returns (uint256)',
+  'function balanceOf(address who) public view returns (uint256)',
+  'function name() public view returns (string memory)',
+  'function symbol() public view returns (string memory)',
+  'function decimals() public view returns (uint8)',
+  'function totalSupply() external view returns (uint256)',
+  'function transfer(address who, uint256 amount)',
+  'function transferFrom(address from, address to, uint256 amount)',
+]
+
+export const XRP_PRECOMPILE_ADDRESS =
+  '0xCCCCCCCC00000002000000000000000000000000'
+
+export const ROOT_PRECOMPILE_ADDRESS =
+  '0xcCcCCccC00000001000000000000000000000000'
+
+export type TransactionType = 'eth' | 'root'
+
+export const providers: Record<TransactionType, ethers.JsonRpcProvider> = {
+  eth: new ethers.JsonRpcProvider(ethJsonRpcProviderUrl),
+  root: new ethers.JsonRpcProvider(rootJsonRpcProviderUrl),
+}
+
+export const xrpERC20Precompile = new Contract(
+  XRP_PRECOMPILE_ADDRESS,
+  ERC20_ABI,
+  providers.root,
+)
+export const rootERC20Precompile = new Contract(
+  ROOT_PRECOMPILE_ADDRESS,
+  ERC20_ABI,
+  providers.root,
+)
