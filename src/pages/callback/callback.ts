@@ -3,7 +3,13 @@ import { parseJwt } from '../../helpers'
 import { DecodedIdToken } from '../../types'
 import { demoMixpanel } from '../mixpanel/mixpanel'
 import { logout, refreshTokens, silentLogin } from './auth'
-import { sendTransaction, signMessage, signTransaction } from './transactions'
+import {
+  sendEthTransaction,
+  sendRootTransaction,
+  signEthTransaction,
+  signMessage,
+  signRootTransaction,
+} from './transactions'
 
 displayAuthorizationCode()
 handleCallback()
@@ -134,10 +140,10 @@ const signTxCallbackUrl = (
 ).value
 
 document
-  .getElementById('sign-tx-button')!
+  .getElementById('sign-eth-tx-button')!
   .addEventListener('click', async () => {
     document.getElementById('send-tx-resp')!.innerText = ''
-    await signTransaction(
+    await signEthTransaction(
       decodedIdToken,
       signTxCallbackUrl != null &&
         (
@@ -151,9 +157,32 @@ document
   })
 
 document
-  .getElementById('send-tx-button')!
+  .getElementById('send-eth-tx-button')!
   .addEventListener('click', async () => {
-    await sendTransaction(decodedIdToken)
+    await sendEthTransaction(decodedIdToken)
+  })
+
+document
+  .getElementById('sign-root-tx-button')!
+  .addEventListener('click', async () => {
+    document.getElementById('send-tx-resp')!.innerText = ''
+    await signRootTransaction(
+      decodedIdToken,
+      signTxCallbackUrl != null &&
+        (
+          document.getElementById(
+            'sign-message-callback-enabled',
+          )! as HTMLInputElement
+        ).checked
+        ? signTxCallbackUrl
+        : undefined,
+    )
+  })
+
+document
+  .getElementById('send-root-tx-button')!
+  .addEventListener('click', async () => {
+    await sendRootTransaction(decodedIdToken)
   })
 
 document.getElementById('logout')!.addEventListener('click', async () => {
