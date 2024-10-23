@@ -1,4 +1,4 @@
-import { ethers, Contract } from 'ethers'
+import { Contract, ethers } from 'ethers'
 
 function getOrThrowFromEnv(name: string): string {
   const value = process.env[name]

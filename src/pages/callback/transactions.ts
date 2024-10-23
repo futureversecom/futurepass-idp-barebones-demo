@@ -1,19 +1,19 @@
 import { ethers } from 'ethers'
 import { either as E } from 'fp-ts'
+import { v4 as uuidV4 } from 'uuid'
 import {
-  rootChainId,
-  ethChainId,
+  XRP_PRECOMPILE_ADDRESS,
   custodialSignerUrl,
-  providers,
-  rootReceiverAddress,
+  ethChainId,
   ethReceiverAddress,
   identityProviderUri,
-  XRP_PRECOMPILE_ADDRESS,
+  providers,
+  rootChainId,
+  rootReceiverAddress,
   xrpERC20Precompile,
 } from '../../config'
 import { base64UrlEncode } from '../../helpers'
 import { DecodedIdToken, SignMessage, SignMessageError } from '../../types'
-import { v4 as uuidV4 } from 'uuid'
 
 let transactionSignature: string | undefined
 let rawTransactionWithoutSignature: object | null = null

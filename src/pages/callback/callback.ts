@@ -1,25 +1,21 @@
-import {
-  clientId,
-  identityProviderUri,
-  redirectUri,
-  tokenEndpoint,
-} from '../../config'
+import { clientId, redirectUri, tokenEndpoint } from '../../config'
 import { parseJwt } from '../../helpers'
 import { DecodedIdToken } from '../../types'
-import { login } from '../login/auth'
 import { demoMixpanel } from '../mixpanel/mixpanel'
+import { logout, refreshTokens, silentLogin } from './auth'
 import {
-  signEthTransaction,
-  signRootTransaction,
-  signMessage,
   sendEthTransaction,
   sendRootTransaction,
+  signEthTransaction,
+  signMessage,
+  signRootTransaction,
 } from './transactions'
 
 displayAuthorizationCode()
 handleCallback()
 
 let decodedIdToken: DecodedIdToken
+let refreshToken: string
 
 async function handleCallback() {
   const params = new URLSearchParams(window.location.search)
@@ -59,6 +55,7 @@ async function handleCallback() {
   verifyNonce(decodedIdToken.payload.nonce)
 
   displayTokenResponse(tokenEndpointResponse)
+  refreshToken = tokenEndpointResponse.refresh_token
   displayDecodedIdToken(decodedIdToken)
 
   trackEevent()
@@ -101,15 +98,6 @@ function displayDecodedIdToken(decodedToken: any) {
     null,
     2,
   )
-}
-
-function logout() {
-  localStorage.clear()
-  window.location.href = `${identityProviderUri}/logout`
-}
-
-async function silentLogin() {
-  await login('silent', decodedIdToken.payload.eoa)
 }
 
 function trackEevent() {
@@ -204,7 +192,15 @@ document.getElementById('logout')!.addEventListener('click', async () => {
 document
   .getElementById('silent-login-button')!
   .addEventListener('click', async () => {
-    await silentLogin()
+    await silentLogin(decodedIdToken)
+  })
+
+document
+  .getElementById('refresh-tokens-button')!
+  .addEventListener('click', async () => {
+    const refreshedTokens = await refreshTokens(refreshToken)
+    refreshToken = refreshedTokens.refresh_token
+    displayTokenResponse(refreshedTokens)
   })
 
 document
