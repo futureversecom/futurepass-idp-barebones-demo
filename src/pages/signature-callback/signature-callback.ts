@@ -1,8 +1,10 @@
 import * as ethers from 'ethers'
-import { jsonRpcProviderUrl } from '../../config'
+import { ethChainId, providers, TransactionType } from '../../config'
 import { base64UrlDecode } from '../../helpers'
 
 type Hex = string
+
+let transactionType: TransactionType
 
 type SignMessageResponse = {
   tag: 'fv/sign-msg'
@@ -36,8 +38,6 @@ document.getElementById('signature-data')!.innerHTML = `
   </div>
 `
 
-const provider = new ethers.JsonRpcProvider(jsonRpcProviderUrl)
-
 function handleTransactionResponse(txRes: SignTransactionResponse) {
   const sendTransactionButton = document.createElement('button')
 
@@ -54,14 +54,22 @@ function handleTransactionResponse(txRes: SignTransactionResponse) {
 
     const transactionObj = ethers.Transaction.from(txRes.payload.transaction)
 
+    const chainId = transactionObj.chainId
+
+    if (chainId.toString() === ethChainId.toString()) {
+      transactionType = 'eth'
+    } else {
+      transactionType = 'root'
+    }
+
     transactionObj.signature = txRes.result.data.signature
 
     const serializedSignedTransaction =
       ethers.Transaction.from(transactionObj).serialized
 
-    const transactionResponse = await provider.broadcastTransaction(
-      serializedSignedTransaction,
-    )
+    const transactionResponse = await providers[
+      transactionType
+    ].broadcastTransaction(serializedSignedTransaction)
 
     document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
       transactionResponse,

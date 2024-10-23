@@ -2,6 +2,9 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 const buildPath = path.resolve(__dirname, 'dist')
+const Dotenv = require('dotenv')
+const webpack = require('webpack')
+Dotenv.config()
 
 module.exports = (env, argv) => {
   const isDevelopment = argv.mode === 'development'
@@ -65,6 +68,9 @@ module.exports = (env, argv) => {
         chunks: ['signature-callback'],
       }),
       new NodePolyfillPlugin(),
+      new webpack.DefinePlugin({
+        'process.env': JSON.stringify({ ...env, ...process.env }),
+      }),
     ],
     watch: isDevelopment,
   }

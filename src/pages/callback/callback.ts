@@ -1,19 +1,21 @@
-import {
-  clientId,
-  identityProviderUri,
-  redirectUri,
-  tokenEndpoint,
-} from '../../config'
+import { clientId, redirectUri, tokenEndpoint } from '../../config'
 import { parseJwt } from '../../helpers'
 import { DecodedIdToken } from '../../types'
-import { login } from '../login/auth'
 import { demoMixpanel } from '../mixpanel/mixpanel'
-import { sendTransaction, signMessage, signTransaction } from './transactions'
+import { logout, refreshTokens, silentLogin } from './auth'
+import {
+  sendEthTransaction,
+  sendRootTransaction,
+  signEthTransaction,
+  signMessage,
+  signRootTransaction,
+} from './transactions'
 
 displayAuthorizationCode()
 handleCallback()
 
 let decodedIdToken: DecodedIdToken
+let refreshToken: string
 
 async function handleCallback() {
   const params = new URLSearchParams(window.location.search)
@@ -53,6 +55,7 @@ async function handleCallback() {
   verifyNonce(decodedIdToken.payload.nonce)
 
   displayTokenResponse(tokenEndpointResponse)
+  refreshToken = tokenEndpointResponse.refresh_token
   displayDecodedIdToken(decodedIdToken)
 
   trackEevent()
@@ -97,15 +100,6 @@ function displayDecodedIdToken(decodedToken: any) {
   )
 }
 
-function logout() {
-  localStorage.clear()
-  window.location.href = `${identityProviderUri}/logout`
-}
-
-async function silentLogin() {
-  await login('silent', decodedIdToken.payload.eoa)
-}
-
 function trackEevent() {
   const savedDeviceId = localStorage.getItem('device_id')
   const distinctId = decodedIdToken.payload.futurepass.toLowerCase()
@@ -146,10 +140,10 @@ const signTxCallbackUrl = (
 ).value
 
 document
-  .getElementById('sign-tx-button')!
+  .getElementById('sign-eth-tx-button')!
   .addEventListener('click', async () => {
     document.getElementById('send-tx-resp')!.innerText = ''
-    await signTransaction(
+    await signEthTransaction(
       decodedIdToken,
       signTxCallbackUrl != null &&
         (
@@ -163,9 +157,32 @@ document
   })
 
 document
-  .getElementById('send-tx-button')!
+  .getElementById('send-eth-tx-button')!
   .addEventListener('click', async () => {
-    await sendTransaction(decodedIdToken)
+    await sendEthTransaction(decodedIdToken)
+  })
+
+document
+  .getElementById('sign-root-tx-button')!
+  .addEventListener('click', async () => {
+    document.getElementById('send-tx-resp')!.innerText = ''
+    await signRootTransaction(
+      decodedIdToken,
+      signTxCallbackUrl != null &&
+        (
+          document.getElementById(
+            'sign-message-callback-enabled',
+          )! as HTMLInputElement
+        ).checked
+        ? signTxCallbackUrl
+        : undefined,
+    )
+  })
+
+document
+  .getElementById('send-root-tx-button')!
+  .addEventListener('click', async () => {
+    await sendRootTransaction(decodedIdToken)
   })
 
 document.getElementById('logout')!.addEventListener('click', async () => {
@@ -175,7 +192,15 @@ document.getElementById('logout')!.addEventListener('click', async () => {
 document
   .getElementById('silent-login-button')!
   .addEventListener('click', async () => {
-    await silentLogin()
+    await silentLogin(decodedIdToken)
+  })
+
+document
+  .getElementById('refresh-tokens-button')!
+  .addEventListener('click', async () => {
+    const refreshedTokens = await refreshTokens(refreshToken)
+    refreshToken = refreshedTokens.refresh_token
+    displayTokenResponse(refreshedTokens)
   })
 
 document
