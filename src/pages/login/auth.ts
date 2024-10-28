@@ -26,7 +26,7 @@ export async function login(
     scope: 'openid',
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
-    response_mode: 'query',
+    response_mode: 'web_message',
     prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
     state,
     nonce,
