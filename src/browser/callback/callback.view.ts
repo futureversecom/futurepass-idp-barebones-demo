@@ -58,16 +58,19 @@ document
       (document.getElementById('sign-message-input')! as HTMLInputElement)
         .value ?? '0x65Aa45B043f360887fD0fA18A4E137e036F5A708'
 
+    const callbackUrl =
+      signMsgCallbackUrl != null &&
+      (
+        document.getElementById(
+          'sign-message-callback-enabled',
+        )! as HTMLInputElement
+      ).checked
+        ? signMsgCallbackUrl
+        : undefined
+
     const signatureResponse = await signMessage(
       message,
-      signMsgCallbackUrl != null &&
-        (
-          document.getElementById(
-            'sign-message-callback-enabled',
-          )! as HTMLInputElement
-        ).checked
-        ? signMsgCallbackUrl
-        : undefined,
+      callbackUrl,
       (encodedPayload) => {
         document.getElementById('sign-message-payload')!.innerText =
           JSON.stringify(encodedPayload, null, 2)
@@ -89,18 +92,18 @@ document
   .getElementById('sign-eth-tx-button')!
   .addEventListener('click', async () => {
     document.getElementById('send-tx-resp')!.innerText = ''
+    const callbackUrl =
+      signTxCallbackUrl != null &&
+      (document.getElementById('sign-tx-callback-enabled')! as HTMLInputElement)
+        .checked
+        ? signTxCallbackUrl
+        : undefined
+
     const signatureResponse = await signEthTransaction(
       getDecodedIdToken().payload.eoa,
       undefined,
       undefined,
-      signTxCallbackUrl != null &&
-        (
-          document.getElementById(
-            'sign-message-callback-enabled',
-          )! as HTMLInputElement
-        ).checked
-        ? signTxCallbackUrl
-        : undefined,
+      callbackUrl,
       (encodedPayload) => {
         document.getElementById('sign-tx-signer-payload')!.innerText =
           JSON.stringify(encodedPayload, null, 2)
@@ -142,18 +145,18 @@ document
   .getElementById('sign-root-tx-button')!
   .addEventListener('click', async () => {
     document.getElementById('send-tx-resp')!.innerText = ''
+    const callbackUrl =
+      signTxCallbackUrl != null &&
+      (document.getElementById('sign-tx-callback-enabled')! as HTMLInputElement)
+        .checked
+        ? signTxCallbackUrl
+        : undefined
+
     const signatureResponse = await signRootTransaction(
       getDecodedIdToken().payload.eoa,
       undefined,
       undefined,
-      signTxCallbackUrl != null &&
-        (
-          document.getElementById(
-            'sign-message-callback-enabled',
-          )! as HTMLInputElement
-        ).checked
-        ? signTxCallbackUrl
-        : undefined,
+      callbackUrl,
       (encodedPayload) => {
         document.getElementById('sign-tx-signer-payload')!.innerText =
           JSON.stringify(encodedPayload, null, 2)
