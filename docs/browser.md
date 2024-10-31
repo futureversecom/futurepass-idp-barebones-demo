@@ -2,14 +2,6 @@
 
 This document provides an overview of the pages located in the `src/browser` directory. Each page is responsible for handling specific functionalities related to the browser-based interactions of the application.
 
-## Table of Contents
-
-- [Browser Pages Documentation](#browser-pages-documentation)
-  - [Table of Contents](#table-of-contents)
-  - [Login Page](#login-page)
-  - [Callback Page](#callback-page)
-  - [Signature Callback Page](#signature-callback-page)
-
 ## Login Page
 
 **File:** [src/browser/login/index.html](../src/browser/login/index.html)
@@ -38,3 +30,12 @@ The signature callback page is used by native clients (e.g., games) to handle th
 
 **Related Scripts:**
 - [src/browser/signature-callback/signature-callback.view.ts](../src/browser/signature-callback/signature-callback.view.ts): Main script for handling the signature callback logic and displaying the signed data.
+
+
+## Running locally
+
+To start the browser demo, run the following command:
+
+```sh
+npm run dev:browser
+```
