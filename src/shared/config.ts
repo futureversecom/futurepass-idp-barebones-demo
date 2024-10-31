@@ -10,7 +10,9 @@ function getOrThrowFromEnv(name: string): string {
 
 export const clientId = getOrThrowFromEnv('CLIENT_ID')
 export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
-export const browserRedirectUri = window.origin + '/callback'
+export const browserRedirectUri = global.window
+  ? global.window.origin + '/callback'
+  : '' // not a browser environment so we ignore it
 
 export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
 
