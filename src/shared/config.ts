@@ -10,7 +10,7 @@ function getOrThrowFromEnv(name: string): string {
 
 export const clientId = getOrThrowFromEnv('CLIENT_ID')
 export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
-export const redirectUri = getOrThrowFromEnv('CLIENT_REDIRECT_URI')
+export const browserRedirectUri = getOrThrowFromEnv('CLIENT_REDIRECT_URI')
 
 export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
 
@@ -67,3 +67,6 @@ export const rootERC20Precompile = new Contract(
   ERC20_ABI,
   providers.root,
 )
+
+export const SERVER_PORT = 5002
+export const serverRedirectUri = `http://localhost:${SERVER_PORT}/callback`

@@ -20,7 +20,11 @@
     "allowSyntheticDefaultImports": true,
     "strictBindCallApply": true,
     "strictNullChecks": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "paths": {
+      "openURL": ["src/shared/open-url.browser.ts"],
+      "shared": ["src/shared"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "tmp"]

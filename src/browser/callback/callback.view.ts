@@ -1,84 +1,31 @@
-import { clientId, redirectUri, tokenEndpoint } from '../../config'
-import { parseJwt } from '../../helpers'
-import { DecodedIdToken } from '../../types'
-import { demoMixpanel } from '../mixpanel/mixpanel'
-import { logout, refreshTokens, silentLogin } from './auth'
 import {
-  sendEthTransaction,
-  sendRootTransaction,
+  DecodedIdToken,
+  logout,
+  refreshTokens,
+  silentLogin,
+  sendTransaction,
   signEthTransaction,
   signMessage,
   signRootTransaction,
-} from './transactions'
-
-displayAuthorizationCode()
-handleCallback()
+  processCallback,
+  getDecodedIdToken,
+} from 'shared'
 
 let decodedIdToken: DecodedIdToken
 let refreshToken: string
 
 async function handleCallback() {
-  const params = new URLSearchParams(window.location.search)
-  const code = params.get('code')
-  const state = params.get('state')
+  const data = await processCallback(window.location.search)
+  decodedIdToken = data.decodedIdToken
+  refreshToken = data.refreshToken
 
-  if (!code || !state) {
-    throw new Error('Missing code or state in the callback')
-  }
-
-  verifyState(state)
-
-  const codeVerifier = localStorage.getItem('code_verifier')
-  const body = new URLSearchParams({
-    grant_type: 'authorization_code',
-    code: code!,
-    redirect_uri: redirectUri,
-    client_id: clientId,
-    code_verifier: codeVerifier!,
-  })
-
-  const response = await fetch(tokenEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: body.toString(),
-  })
-
-  const tokenEndpointResponse = await response.json()
-  decodedIdToken = parseJwt(tokenEndpointResponse.id_token)
-
-  if (!decodedIdToken) {
-    throw new Error('Invalid JWT token')
-  }
-
-  verifyNonce(decodedIdToken.payload.nonce)
-
-  displayTokenResponse(tokenEndpointResponse)
-  refreshToken = tokenEndpointResponse.refresh_token
-  displayDecodedIdToken(decodedIdToken)
-
-  trackEevent()
+  displayAuthorizationCode(data.code)
+  displayTokenResponse(data.tokenEndpointResponse)
+  displayDecodedIdToken(data.decodedIdToken)
 }
+handleCallback()
 
-function verifyState(state: string) {
-  const savedState = localStorage.getItem('state')
-  if (state !== savedState) {
-    throw new Error('Invalid state (CSRF protection)')
-  }
-}
-
-function verifyNonce(nonce: string) {
-  const savedNonce = localStorage.getItem('nonce')
-  if (nonce !== savedNonce) {
-    throw new Error('Invalid nonce (replay protection)')
-  }
-}
-
-function displayAuthorizationCode() {
-  const params = new URLSearchParams(window.location.search)
-  const code = params.get('code')
-
+function displayAuthorizationCode(code: string) {
   if (code) {
     document.getElementById('authorization-code')!.innerHTML = code
   }
@@ -100,30 +47,19 @@ function displayDecodedIdToken(decodedToken: any) {
   )
 }
 
-function trackEevent() {
-  const savedDeviceId = localStorage.getItem('device_id')
-  const distinctId = decodedIdToken.payload.futurepass.toLowerCase()
-
-  // demoMixpanel.identify(distinctId);
-
-  demoMixpanel.track('user_login_callback', {
-    $distinct_id: distinctId,
-    $device_id: savedDeviceId,
-    user_login_at: Date.now(),
-  })
-
-  console.log(savedDeviceId, distinctId)
-}
-
 const signMsgCallbackUrl = (
   document.getElementById('sign-message-callback-url')! as HTMLInputElement
 ).value
 
 document
   .getElementById('sign-message-button')!
-  .addEventListener('click', () => {
-    signMessage(
-      decodedIdToken,
+  .addEventListener('click', async () => {
+    const message =
+      (document.getElementById('sign-message-input')! as HTMLInputElement)
+        .value ?? '0x65Aa45B043f360887fD0fA18A4E137e036F5A708'
+
+    const signatureResponse = await signMessage(
+      message,
       signMsgCallbackUrl != null &&
         (
           document.getElementById(
@@ -132,6 +68,16 @@ document
         ).checked
         ? signMsgCallbackUrl
         : undefined,
+      (encodedPayload) => {
+        document.getElementById('sign-message-payload')!.innerText =
+          JSON.stringify(encodedPayload, null, 2)
+      },
+    )
+
+    document.getElementById('sign-message-resp')!.innerText = JSON.stringify(
+      signatureResponse,
+      null,
+      2,
     )
   })
 
@@ -143,8 +89,10 @@ document
   .getElementById('sign-eth-tx-button')!
   .addEventListener('click', async () => {
     document.getElementById('send-tx-resp')!.innerText = ''
-    await signEthTransaction(
-      decodedIdToken,
+    const signatureResponse = await signEthTransaction(
+      getDecodedIdToken().payload.eoa,
+      undefined,
+      undefined,
       signTxCallbackUrl != null &&
         (
           document.getElementById(
@@ -153,21 +101,51 @@ document
         ).checked
         ? signTxCallbackUrl
         : undefined,
+      (encodedPayload) => {
+        document.getElementById('sign-tx-signer-payload')!.innerText =
+          JSON.stringify(encodedPayload, null, 2)
+      },
+    )
+    document.getElementById('sign-tx-sig-response')!.innerText = JSON.stringify(
+      signatureResponse,
+      null,
+      2,
     )
   })
 
 document
   .getElementById('send-eth-tx-button')!
   .addEventListener('click', async () => {
-    await sendEthTransaction(decodedIdToken)
+    const serializedSignedTransaction = JSON.parse(
+      document.getElementById('sign-tx-sig-response')!.innerText,
+    )?.data?.serializedSignedTransaction
+    if (!serializedSignedTransaction) {
+      alert('Please sign a transaction first')
+    }
+    try {
+      const receipt = await sendTransaction(serializedSignedTransaction)
+      document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+        receipt,
+        null,
+        2,
+      )
+    } catch (e) {
+      document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+        e,
+        null,
+        2,
+      )
+    }
   })
 
 document
   .getElementById('sign-root-tx-button')!
   .addEventListener('click', async () => {
     document.getElementById('send-tx-resp')!.innerText = ''
-    await signRootTransaction(
-      decodedIdToken,
+    const signatureResponse = await signRootTransaction(
+      getDecodedIdToken().payload.eoa,
+      undefined,
+      undefined,
       signTxCallbackUrl != null &&
         (
           document.getElementById(
@@ -176,13 +154,41 @@ document
         ).checked
         ? signTxCallbackUrl
         : undefined,
+      (encodedPayload) => {
+        document.getElementById('sign-tx-signer-payload')!.innerText =
+          JSON.stringify(encodedPayload, null, 2)
+      },
+    )
+    document.getElementById('sign-tx-sig-response')!.innerText = JSON.stringify(
+      signatureResponse,
+      null,
+      2,
     )
   })
 
 document
   .getElementById('send-root-tx-button')!
   .addEventListener('click', async () => {
-    await sendRootTransaction(decodedIdToken)
+    const serializedSignedTransaction = JSON.parse(
+      document.getElementById('sign-tx-sig-response')!.innerText,
+    )?.data?.serializedSignedTransaction
+    if (!serializedSignedTransaction) {
+      alert('Please sign a transaction first')
+    }
+    try {
+      const receipt = await sendTransaction(serializedSignedTransaction)
+      document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+        receipt,
+        null,
+        2,
+      )
+    } catch (e) {
+      document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
+        e,
+        null,
+        2,
+      )
+    }
   })
 
 document.getElementById('logout')!.addEventListener('click', async () => {

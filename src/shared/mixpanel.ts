@@ -1,5 +1,5 @@
 import mixpanel from 'mixpanel-browser'
-import { mixpanelProjectToken } from '../../config'
+import { mixpanelProjectToken } from './config'
 
 // Near entry of your product, init Mixpanel
 mixpanel.init(mixpanelProjectToken, {

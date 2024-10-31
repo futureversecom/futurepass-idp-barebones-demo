@@ -1,21 +1,20 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
-const buildPath = path.resolve(__dirname, 'dist')
+const buildPath = path.resolve(__dirname, 'dist', 'browser')
 const Dotenv = require('dotenv')
 const webpack = require('webpack')
 Dotenv.config()
 
 module.exports = (env, argv) => {
   const isDevelopment = argv.mode === 'development'
-
   return {
     mode: 'development',
     entry: {
-      main: './src/pages/login/index.ts',
-      callback: './src/pages/callback/callback.ts',
+      main: './src/browser/login/index.ts',
+      callback: './src/browser/callback/callback.view.ts',
       'signature-callback':
-        './src/pages/signature-callback/signature-callback.ts',
+        './src/browser/signature-callback/signature-callback.view.ts',
     },
     output: {
       filename: '[name].[hash:20].js',
@@ -46,30 +45,49 @@ module.exports = (env, argv) => {
         net: false,
         tls: false,
         fs: false,
+        promises: false,
+        util: false,
+        stream: false,
+        http: false,
+        https: false,
+        url: false,
+        process: false,
+        worker_threads: false,
+      },
+      alias: {
+        openURL: path.resolve(__dirname, 'src/shared/open-url.browser.ts'),
+        shared: path.resolve(__dirname, 'src/shared'),
       },
     },
+    externals: {
+      'node:fs/promises': 'commonjs2 node:fs/promises',
+    },
     plugins: [
+      new NodePolyfillPlugin(),
       new HtmlWebpackPlugin({
-        template: './src/pages/login/index.html',
+        template: './src/browser/login/index.html',
         inject: 'body',
         filename: 'index.html',
         chunks: ['main'],
       }),
       new HtmlWebpackPlugin({
-        template: './src/pages/callback/callback.html',
+        template: './src/browser/callback/callback.html',
         inject: 'body',
         filename: 'callback.html',
         chunks: ['callback'],
       }),
       new HtmlWebpackPlugin({
-        template: './src/pages/signature-callback/signature-callback.html',
+        template: './src/browser/signature-callback/signature-callback.html',
         inject: 'body',
         filename: 'signature-callback.html',
         chunks: ['signature-callback'],
       }),
-      new NodePolyfillPlugin(),
       new webpack.DefinePlugin({
-        'process.env': JSON.stringify({ ...env, ...process.env }),
+        'process.env': JSON.stringify({
+          ...env,
+          ...process.env,
+          isBrowser: true,
+        }),
       }),
     ],
     watch: isDevelopment,

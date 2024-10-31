@@ -4,8 +4,14 @@
   "description": "A demo TypeScript app for FuturePass Identity Provider authentication.",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --mode production",
-    "start": "webpack serve"
+    "build": "npm run build:all",
+    "dev": "npm run dev:all",
+    "build:browser": "webpack --config webpack.browser.js --mode production",
+    "build:server": "webpack --config webpack.server.js --mode production",
+    "build:all": "npm run build:browser && npm run build:server",
+    "dev:browser": "webpack serve --config webpack.browser.js --mode development",
+    "dev:server": "concurrently --wait --names \"WEBPACK,SERVER-INSTANCE\" \"webpack --config webpack.server.js --mode development\" \"nodemon --watch dist --ext js dist/server/server.js\"",
+    "dev:all": "concurrently --names \"SERVER,BROWSER\" \"npm run dev:server\" \"npm run dev:browser\""
   },
   "keywords": [],
   "author": "The FuturePass team",
@@ -13,11 +19,14 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
     "@types/mixpanel-browser": "^2.50.0",
+    "@types/node-localstorage": "^1.3.3",
     "@types/uuid": "^10.0.0",
+    "concurrently": "^9.0.1",
     "dotenv": "^16.4.5",
     "fp-ts": "^2.16.6",
     "html-webpack-plugin": "^5.6.0",
     "io-ts": "^2.2.21",
+    "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
@@ -27,11 +36,16 @@
   },
   "dependencies": {
     "@ethersproject/providers": "^5.7.2",
+    "bufferutil": "^4.0.8",
+    "crypto-browserify": "^3.12.1",
     "ethers": "^6.3.0",
     "jose": "^5.8.0",
+    "localstorage-polyfill": "^1.0.1",
     "mixpanel-browser": "^2.55.1",
+    "node-localstorage": "^3.0.5",
     "node-polyfill-webpack-plugin": "^4.0.0",
     "siwe": "^2.3.2",
+    "utf-8-validate": "^5.0.10",
     "uuid": "^10.0.0"
   }
 }
