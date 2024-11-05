@@ -99,7 +99,7 @@ function displayDecodedIdToken(decodedToken: any) {
 
 function logout() {
   localStorage.clear()
-  window.location.href = `${identityProviderUri}/logout`
+  window.location.href = `${identityProviderUri}/session/end?disable_consent=true`
 }
 
 async function silentLogin() {

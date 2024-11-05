@@ -81,7 +81,7 @@ async function loginWithMetamask() {
       scope: 'openid',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
-      response_mode: 'web_message',
+      response_mode: 'query',
       prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
       state,
       nonce,
