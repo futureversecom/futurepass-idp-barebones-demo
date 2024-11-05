@@ -49,3 +49,5 @@ Thumbs.db
 
 .localstack
 apps/identity-provider-backend/terraform/environments/local/terraform.tfstate
+
+storage

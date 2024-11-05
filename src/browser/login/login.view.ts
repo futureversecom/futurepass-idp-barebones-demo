@@ -1,4 +1,4 @@
-import { login } from './auth'
+import { login } from 'shared'
 
 document
   .getElementById('login-button-google')!

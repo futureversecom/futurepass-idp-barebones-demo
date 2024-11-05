@@ -3,14 +3,12 @@ import {
   authorizationEndpoint,
   clientId,
   identityProviderUri,
-  redirectUri,
-} from '../../config'
-import {
   generateCodeVerifierAndChallenge,
   generateRandomString,
-} from '../../helpers'
+  redirectUri,
+  demoMixpanel,
+} from 'shared'
 import { BrowserProvider, getAddress, randomBytes, uuidV4 } from 'ethers'
-import { demoMixpanel } from '../mixpanel/mixpanel'
 
 document
   .getElementById('login-button-metamask')!

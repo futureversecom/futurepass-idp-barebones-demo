@@ -1,6 +1,5 @@
-import * as ethers from 'ethers'
-import { ethChainId, providers, TransactionType } from '../../config'
-import { base64UrlDecode } from '../../helpers'
+import { ethers, Transaction } from 'ethers'
+import { TransactionType, base64UrlDecode, sendTransaction } from 'shared'
 
 type Hex = string
 
@@ -52,24 +51,16 @@ function handleTransactionResponse(txRes: SignTransactionResponse) {
       return
     }
 
-    const transactionObj = ethers.Transaction.from(txRes.payload.transaction)
-
-    const chainId = transactionObj.chainId
-
-    if (chainId.toString() === ethChainId.toString()) {
-      transactionType = 'eth'
-    } else {
-      transactionType = 'root'
-    }
+    const transactionObj = Transaction.from(txRes.payload.transaction)
 
     transactionObj.signature = txRes.result.data.signature
 
     const serializedSignedTransaction =
       ethers.Transaction.from(transactionObj).serialized
 
-    const transactionResponse = await providers[
-      transactionType
-    ].broadcastTransaction(serializedSignedTransaction)
+    const transactionResponse = await sendTransaction(
+      serializedSignedTransaction,
+    )
 
     document.getElementById('send-tx-resp')!.innerText = JSON.stringify(
       transactionResponse,

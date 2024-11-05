@@ -4,7 +4,9 @@ This guide explains how to use the FuturePass Identity Provider (IDP) to authent
 
 This guide only covers custodial accounts, if non-custodial is requirement we can add that.
 
-**Note:** This demo's goal is simplicity so do not depend on the helper functions used in the code to generate random strings, generate sha256, decode JWT and so on. These are not officially provided by Futureverse and here only for explanation purposes. You should use libraries which securely process data or extensively test your own implementation for edge cases.
+Refer [Server](./docs/server.md) and [Browser](./docs/browser.md) documentation to understand API requests and web pages interacting with Blockchain and Identity provider.
+
+**Note:** This demo's goal is simplicity so do not depend on the helper functions used in the code to generate random strings, generate sha256, decode JWT and so on. These are not officially provided by Futureverse and here only for explanation purposes. You should use libraries which securely process data or extensively test your own implementation for edge cases. Also server example is only for demo purpose, it is not expected to be used in production environment.
 
 ## Table of Contents
 
@@ -18,13 +20,14 @@ This guide only covers custodial accounts, if non-custodial is requirement we ca
 8. [Logout](#logout)
 9. [Security Best Practices](#security-best-practices)
 10. [Example Code](#example-code)
+11. [Running locally](#running-locally)
 
 ## Overview
 
 Before using `FutureverseProvider` container you will need to register an OAuth2 client with the Futureverse Identity Provider using the Manage Clients Console:
 
-- **Production:** https://login.futureverse.app/manageclients
-- **Development / Staging:** https://login.futureverse.cloud/manageclients
+- **Production:** https://login.pass.online/manageclients
+- **Development / Staging:** https://login.passonline.cloud/manageclients
 - **Audit (Canary):** https://login.futureverse.kiwi/manageclients
 
 You will need to provide two arguments:
@@ -110,7 +113,7 @@ The `login_hint` parameter can take various values depending on the requested lo
 ### Example Authorization Request URL
 
 ```plaintext
-https://login.futureverse.dev/auth?
+https://login.passonline.dev/auth?
 response_type=code&
 client_id=YOUR_CLIENT_ID&
 redirect_uri=http://localhost:3000/callback&
@@ -318,6 +321,7 @@ async function signTransaction() {
   })
 }
 ```
+Refer: [getSignatureFromCustodialSigner](./src/shared/helpers.ts) to get signature on web and native(server) clients.
 
 #### Step 2: Send Transaction to Blockchain
 
@@ -343,6 +347,7 @@ sync function sendTransaction() {
   );
 }
 ```
+Refer: [signEthTransaction](./src/shared/transaction.ts), [signRootTransaction](./src/shared/transaction.ts) and [sendTransaction](./src/shared/transaction.ts)
 
 ## Silent Login
 
@@ -376,7 +381,7 @@ Silent login is a method used to obtain a new authentication token without distu
 ### Example Silent Login Request URL
 
 ```plaintext
-https://login.futureverse.dev/auth?
+https://login.passonline.dev/auth?
 response_type=code&
 client_id=YOUR_CLIENT_ID&
 redirect_uri=http://localhost:3000/callback&
@@ -421,7 +426,11 @@ It is crucial to log out before initiating a new login. If this step is skipped,
 
 ## Example Code
 
-1. Email, Google, Facebook, and IDP-F login example can be found at [`./src/pages/login/login.ts`](./src/pages/login/login.ts).
-2. MetaMask login example can be found at [`./src/pages/login/metamask.ts`](./src/pages/login/metamask.ts).
-3. Handling callback and decoding the ID token can be found at [`./src/pages/callback/callback.ts`](./src/pages/callback/callback.ts)
-4. Handling signature callbacks for native clients(games) can be found at ['./src/pages/signature-callback/signature-callback.ts'](./src/pages/signature-callback/signature-callback.ts)
+1. Email, Google, Facebook, and IDP-F login example can be found at [`./src/browser/login/login.view.ts`](./src/browser/login/login.view.ts).
+2. MetaMask login example can be found at [`./src/browser/login/metamask.ts`](./src/browser/login/metamask.ts).
+3. Handling callback and decoding the ID token can be found at [`./src/browser/callback/callback.view.ts`](./src/browser/callback/callback.view.ts)
+4. Handling signature callbacks for native clients(games) can be found at ['./src/browser/signature-callback/signature-callback.view.ts'](./src/browser/signature-callback/signature-callback.view.ts)
+
+## Running locally
+- Run server demo locally using `npm run dev:server`
+- Run browser demo locally using `npm run dev:browser` 

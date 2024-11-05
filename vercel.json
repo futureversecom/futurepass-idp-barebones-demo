@@ -8,5 +8,6 @@
       "source": "/signature-callback",
       "destination": "/signature-callback.html"
     }
-  ]
+  ],
+  "outputDirectory": "dist/browser"
 }
