@@ -20,11 +20,10 @@ async function handleCallback() {
   const code = params.get('code')
   const state = params.get('state')
 
-  if (!code || !state) {
+  if (!code) {
     throw new Error('Missing code or state in the callback')
   }
 
-  verifyState(state)
 
   const codeVerifier = localStorage.getItem('code_verifier')
   const body = new URLSearchParams({
@@ -32,9 +31,8 @@ async function handleCallback() {
     code: code!,
     redirect_uri: redirectUri,
     client_id: clientId,
-    code_verifier: codeVerifier!,
   })
-
+  console.log('params', body)
   const response = await fetch(tokenEndpoint, {
     method: 'POST',
     headers: {
@@ -42,8 +40,8 @@ async function handleCallback() {
     },
     body: body.toString(),
   })
-
   const tokenEndpointResponse = await response.json()
+  console.log('token', tokenEndpointResponse)
   decodedIdToken = parseJwt(tokenEndpointResponse.id_token)
 
   if (!decodedIdToken) {
