@@ -1,0 +1,13 @@
+{
+    "rewrites": [
+      {
+        "source": "/callback",
+        "destination": "/callback.html"
+      },
+      {
+        "source": "/signature-callback",
+        "destination": "/signature-callback.html"
+      }
+    ],
+    "outputDirectory": "dist/browser"
+  }
