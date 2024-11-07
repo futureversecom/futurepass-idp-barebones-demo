@@ -97,10 +97,11 @@ function displayDecodedIdToken(decodedToken: any) {
   )
 }
 
-function logout(legacy = true, disable_consent = false, response_mode = '') {
+function logout(legacy = true, disable_consent = false, redirect = false, response_mode = '') {
   localStorage.clear()
+  const redirectUri = 'https://futurepass-idp-barebones-demo-git-pfs-604-ad-cb4e7a-futureverse.vercel.app/'
 
-  window.location.href = `${identityProviderUri}/${legacy ? 'logout' : 'session/end'}?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}`
+  window.location.href = `${identityProviderUri}/${legacy ? 'logout' : 'session/end'}?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}&${redirect ? `post_logout_redirect_uri=${redirectUri}` : ''}`
 }
 
 async function silentLogin() {
@@ -176,12 +177,14 @@ document.getElementById('logout-2')!.addEventListener('click', async () => {
   await logout(false, true)
 })
 document.getElementById('logout-3')!.addEventListener('click', async () => {
-  await logout(false, false, 'web_message')
+  await logout(false, false, false, 'web_message')
 })
 document.getElementById('logout-4')!.addEventListener('click', async () => {
   await logout(false, false)
 })
-
+document.getElementById('logout-5')!.addEventListener('click', async () => {
+  await logout(false, true, true )
+})
 document
   .getElementById('silent-login-button')!
   .addEventListener('click', async () => {
