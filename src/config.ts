@@ -2,7 +2,7 @@ export const clientId = 'XfBxqrFOJ6NXC9FqxIAL-' // This is a test Client ID, pre
 export const accessToken = 'G-Y5OwG_2NDRLFTpLpyjX92WyLMia2t0PcmPboGeMqi' // This is a test /manageclients Access Token, preferably use your own
 export const redirectUri = 'https://futurepass-idp-barebones-demo-git-pfs-604-ad-cb4e7a-futureverse.vercel.app/callback' // Ensure this matches the redirect_uri defined on /manageclients
 
-export const identityProviderUri = 'login.passonline.dev' // login.passonline.dev -> DEV, login.passonline.cloud -> STAGING, login.pass.online -> PRODUCTION
+export const identityProviderUri = 'https://login.passonline.dev' // login.passonline.dev -> DEV, login.passonline.cloud -> STAGING, login.pass.online -> PRODUCTION
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`
 export const tokenEndpoint = `${identityProviderUri}/token`
