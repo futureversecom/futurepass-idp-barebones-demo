@@ -40,7 +40,11 @@ export async function login(
     redirect_uri: redirectUri,
     scope: 'openid',
     response_mode: 'query',
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
     prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
+    state,
+    nonce,
     device_id,
   }
 

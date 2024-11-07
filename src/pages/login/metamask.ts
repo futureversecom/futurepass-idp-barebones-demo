@@ -79,9 +79,14 @@ async function loginWithMetamask() {
       client_id: clientId,
       redirect_uri: redirectUri,
       scope: 'openid',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
       response_mode: 'query',
       prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
+      state,
+      nonce,
       login_hint,
+      device_id,
       web3_connector_id: 'metamask',
     }
 
