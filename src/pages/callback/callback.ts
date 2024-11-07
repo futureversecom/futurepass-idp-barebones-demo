@@ -97,9 +97,10 @@ function displayDecodedIdToken(decodedToken: any) {
   )
 }
 
-function logout(disable_consent = false, response_mode = '') {
+function logout(legacy = true, disable_consent = false, response_mode = '') {
   localStorage.clear()
-  window.location.href = `${identityProviderUri}/session/end?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}`
+
+  window.location.href = `${identityProviderUri}/${legacy ? 'logout' : 'session/end'}?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}`
 }
 
 async function silentLogin() {
@@ -172,10 +173,13 @@ document.getElementById('logout')!.addEventListener('click', async () => {
   await logout()
 })
 document.getElementById('logout-2')!.addEventListener('click', async () => {
-  await logout(true)
+  await logout(false, true)
 })
 document.getElementById('logout-3')!.addEventListener('click', async () => {
-  await logout(false, 'web_message')
+  await logout(false, false, 'web_message')
+})
+document.getElementById('logout-4')!.addEventListener('click', async () => {
+  await logout(false, false)
 })
 
 document
