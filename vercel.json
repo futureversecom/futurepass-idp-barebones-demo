@@ -9,5 +9,5 @@
         "destination": "/signature-callback.html"
       }
     ],
-    "outputDirectory": "dist/browser"
+    "outputDirectory": "dist"
   }
