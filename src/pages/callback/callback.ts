@@ -20,10 +20,11 @@ async function handleCallback() {
   const code = params.get('code')
   const state = params.get('state')
 
-  if (!code) {
+  if (!code || !state) {
     throw new Error('Missing code or state in the callback')
   }
 
+  verifyState(state)
 
   const codeVerifier = localStorage.getItem('code_verifier')
   const body = new URLSearchParams({
@@ -31,8 +32,9 @@ async function handleCallback() {
     code: code!,
     redirect_uri: redirectUri,
     client_id: clientId,
+    code_verifier: codeVerifier!,
   })
-  console.log('params', body)
+
   const response = await fetch(tokenEndpoint, {
     method: 'POST',
     headers: {
@@ -40,8 +42,8 @@ async function handleCallback() {
     },
     body: body.toString(),
   })
+
   const tokenEndpointResponse = await response.json()
-  console.log('token', tokenEndpointResponse)
   decodedIdToken = parseJwt(tokenEndpointResponse.id_token)
 
   if (!decodedIdToken) {
@@ -95,9 +97,9 @@ function displayDecodedIdToken(decodedToken: any) {
   )
 }
 
-function logout() {
+function logout(disable_consent = false, response_mode = '') {
   localStorage.clear()
-  window.location.href = `${identityProviderUri}/session/end?disable_consent=true`
+  window.location.href = `${identityProviderUri}/session/end?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}`
 }
 
 async function silentLogin() {
@@ -168,6 +170,12 @@ document
 
 document.getElementById('logout')!.addEventListener('click', async () => {
   await logout()
+})
+document.getElementById('logout-2')!.addEventListener('click', async () => {
+  await logout(true)
+})
+document.getElementById('logout-3')!.addEventListener('click', async () => {
+  await logout(false, 'web_message')
 })
 
 document
