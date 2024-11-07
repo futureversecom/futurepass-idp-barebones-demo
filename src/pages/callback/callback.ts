@@ -12,7 +12,7 @@ import { sendTransaction, signMessage, signTransaction } from './transactions'
 
 displayAuthorizationCode()
 handleCallback()
-
+var tokenEndpointResponse: any
 let decodedIdToken: DecodedIdToken
 
 async function handleCallback() {
@@ -43,7 +43,7 @@ async function handleCallback() {
     body: body.toString(),
   })
 
-  const tokenEndpointResponse = await response.json()
+  tokenEndpointResponse = await response.json()
   decodedIdToken = parseJwt(tokenEndpointResponse.id_token)
 
   if (!decodedIdToken) {
@@ -100,8 +100,8 @@ function displayDecodedIdToken(decodedToken: any) {
 function logout(legacy = true, disable_consent = false, redirect = false, response_mode = '') {
   localStorage.clear()
   const redirectUri = 'https://futurepass-idp-barebones-demo-git-pfs-604-ad-cb4e7a-futureverse.vercel.app/'
-
-  window.location.href = `${identityProviderUri}/${legacy ? 'logout' : 'session/end'}?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}&${redirect ? `post_logout_redirect_uri=${redirectUri}` : ''}`
+  const idToken = tokenEndpointResponse.id_token
+  window.location.href = `${identityProviderUri}/${legacy ? 'logout' : 'session/end'}?${disable_consent ? 'disable_consent=true' : ''}&response_mode=${response_mode}&${redirect ? `id_token_hint=${idToken}&post_logout_redirect_uri=${redirectUri}` : ''}`
 }
 
 async function silentLogin() {
