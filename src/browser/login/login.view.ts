@@ -47,3 +47,7 @@ document
   .addEventListener('click', () => {
     login('idp-f', undefined, 'unreal')
   })
+
+document.getElementById('silent-login')!.addEventListener('click', () => {
+    login('silent')
+  })

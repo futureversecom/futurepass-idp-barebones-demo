@@ -14,6 +14,7 @@ import {
 } from './helpers'
 import { demoMixpanel } from './mixpanel'
 import { DecodedIdToken } from './types'
+import { IframeNavigator } from './iframe-navigator'
 
 export async function login(
   loginType:
@@ -29,9 +30,15 @@ export async function login(
   targetGameEngine?: 'unity' | 'unreal',
 ) {
   console.log(`login with ${loginType} called`)
-  const { codeVerifier, codeChallenge } =
-    await generateCodeVerifierAndChallenge()
-  localStorage.setItem('code_verifier', codeVerifier)
+  let codeChallenge = ''
+  if (loginType != 'silent') {
+    const { codeVerifier, codeChallenge: _codeChallenge } =
+      await generateCodeVerifierAndChallenge()
+    codeChallenge = _codeChallenge
+    localStorage.setItem('code_verifier', codeVerifier)
+  } else {
+    localStorage.removeItem('code_verifier')
+  }
 
   const state = generateRandomString(16)
   localStorage.setItem('state', state)
@@ -56,13 +63,15 @@ export async function login(
     client_id: clientId,
     redirect_uri: redirectUri,
     scope: 'openid',
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
-    response_mode: 'query',
-    prompt: 'login', // Use `none` to attempt silent authentication without prompting the user
     state,
-    nonce,
-    device_id,
+    ...(loginType != 'silent' ? {
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      response_mode: 'query',
+      nonce,
+      device_id,
+    } : {}),
+    prompt: loginType == 'silent' ? 'none' : 'login', // Use `none` to attempt silent authentication without prompting the user
   }
 
   let query
@@ -113,9 +122,33 @@ export async function login(
   openURL(url, 'redirect')
 }
 
-export function logout() {
+export async function logout(params?: {
+  isLegacy?: boolean,
+  disableConsent?: boolean,
+  isSilent?: boolean,
+  postRedirectUri?: boolean,
+}) {
+
+  const urlParams = new URLSearchParams({
+    ...(params?.disableConsent ? { disable_consent: 'true' } : {}),
+    ...(params?.postRedirectUri ? {
+      post_logout_redirect_uri: redirectUri,
+      id_token_hint: localStorage.getItem('id_token') || '',
+      client_id: clientId,
+    } : {}),
+  })
+
   localStorage.clear()
-  openURL(`${identityProviderUri}/logout`, 'redirect')
+
+  if (params?.isSilent) {
+    const navigator = new IframeNavigator()
+    urlParams.append('response_mode', 'web_message')
+    await navigator.navigate({
+      url: `${identityProviderUri}/session/end?${urlParams.toString()}`
+    })
+  } else {
+    openURL(`${identityProviderUri}/${params?.isLegacy ? "logout" : "session/end"}?${urlParams.toString()}`, 'redirect')
+  }
 }
 
 export async function silentLogin(decodedIdToken: DecodedIdToken) {
@@ -142,8 +175,8 @@ export async function refreshTokens(refreshToken: string) {
       const errorData = await response.json()
       throw new Error(
         errorData.error_description ||
-          errorData.error ||
-          'Failed to refresh tokens',
+        errorData.error ||
+        'Failed to refresh tokens',
       )
     }
 
