@@ -36,9 +36,7 @@
   </head>
   <body>
     <h1>FuturePass Identity Provider Barebones Demo Callback Page</h1>
-    <div>
-      <button id="silent-login-button">Silent Login</button>
-    </div>
+    <a href="/" style="color: white">Login page</a>
     <div>
       <div>Authorization code retrieved from the /auth endpoint:</div>
       <div id="authorization-code"></div>
@@ -62,8 +60,28 @@
       <button id="refresh-tokens-button">Refresh Tokens</button>
     </div>
     <p id="refresh-tokens-error"></p>
-    <div>
-      <button id="logout">Logout</button>
+    <div style="margin-top: 15px; padding: 5px; border: #ff9800 1px solid">
+      <h3>Log out options with redirection:</h3>
+      <div>
+        <button id="legacy-logout">Legacy logout</button>
+      </div>
+      <div>
+        <button id="consent-logout-redirect">log out with consent prompt</button>
+      </div>
+      <div>
+        <button id="no-consent-logout-redirect">Log out without a consent prompt</button>
+      </div>
+      <h3>Log out options with NO redirection:</h3>
+      <div>
+        <button id="consent-logout">log out with consent prompt</button>
+      </div>
+      <div>
+        <button id="no-consent-logout">Log out without a consent prompt</button>
+      </div>
+      <div>
+        <button id="silent-logout">Silent log out</button>
+      </div>
+
     </div>
     <div style="margin-top: 15px; padding: 5px; border: #ff9800 1px solid">
       <h3>Custodial account Sign Message</h3>

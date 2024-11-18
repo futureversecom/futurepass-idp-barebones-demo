@@ -16,6 +16,9 @@ let refreshToken: string
 
 async function handleCallback() {
   const data = await processCallback(window.location.search)
+  if(!data) {
+    return
+  }
   decodedIdToken = data.decodedIdToken
   refreshToken = data.refreshToken
 
@@ -24,6 +27,7 @@ async function handleCallback() {
   displayDecodedIdToken(data.decodedIdToken)
 }
 handleCallback()
+.catch((err) => alert(err.message))
 
 function displayAuthorizationCode(code: string) {
   if (code) {
@@ -194,15 +198,30 @@ document
     }
   })
 
-document.getElementById('logout')!.addEventListener('click', async () => {
+document.getElementById('legacy-logout')!.addEventListener('click', async () => {
+  await logout({ isLegacy: true })
+})
+
+document.getElementById('consent-logout')!.addEventListener('click', async () => {
   await logout()
 })
 
-document
-  .getElementById('silent-login-button')!
-  .addEventListener('click', async () => {
-    await silentLogin(decodedIdToken)
-  })
+document.getElementById('no-consent-logout')!.addEventListener('click', async () => {
+  await logout({ disableConsent: true })
+})
+
+document.getElementById('consent-logout-redirect')!.addEventListener('click', async () => {
+  await logout({ postRedirectUri: true })
+})
+
+document.getElementById('no-consent-logout-redirect')!.addEventListener('click', async () => {
+  await logout({ disableConsent: true, postRedirectUri: true })
+})
+
+document.getElementById('silent-logout')!.addEventListener('click', async () => {
+  await logout({ isSilent: true })
+  alert('Logout successful')
+})
 
 document
   .getElementById('refresh-tokens-button')!
