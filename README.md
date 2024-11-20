@@ -386,23 +386,27 @@ response_type=code&
 client_id=YOUR_CLIENT_ID&
 redirect_uri=http://localhost:3000/callback&
 scope=openid&
-code_challenge=CODE_CHALLENGE&
-code_challenge_method=S256&
 state=STATE&
 nonce=NONCE&
 response_mode=query&
 prompt=none&
-login_hint=<the target eoa usually coming from current login>
 ```
 
 ## Logout
 
 To log a user out of your application, you need to clear their session data and redirect them to the FuturePass logout endpoint.
 
+If 
 ```js
 function logout() {
+  const urlParams = new URLSearchParams({
+    disable_consent, // If "true," the consent prompt is skipped.
+    post_logout_redirect_uri, // This parameter must be registered beforehand in /manageclients.
+    id_token_hint, // if post_logout_redirect_uri is provided then this is required or client_id
+    client_id, // optional
+  })
   localStorage.clear()
-  window.location.href = `${identityProviderUri}/logout`
+  window.location.href = `${identityProviderUri}/session/end?${urlParams.toString()}`
 }
 ```
 
