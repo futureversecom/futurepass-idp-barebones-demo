@@ -72,11 +72,25 @@ async function loginWithMetamask() {
       })
     }
 
+    const claims = {
+      id_token: {
+        sub: { essential: true },
+        futurepass: { essential: true },
+        // azp: { essential: true },
+        // amr: { essential: true },
+        // auth_time: { essential: true },
+      },
+      // can not use 'userinfo' because we disabled user info endpoint '/me'
+      // userinfo: {
+      //   given_name: null,
+      // },
+    }
+
     const params = {
       response_type: 'code',
       client_id: clientId,
       redirect_uri: redirectUri,
-      scope: 'openid',
+      scope: 'openid futurepass',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
       response_mode: 'query',
@@ -86,6 +100,7 @@ async function loginWithMetamask() {
       login_hint,
       device_id,
       web3_connector_id: 'metamask',
+      claims: JSON.stringify(claims),
     }
 
     const queryString = new URLSearchParams(params).toString()
