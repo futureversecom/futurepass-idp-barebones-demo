@@ -438,3 +438,4 @@ It is crucial to log out before initiating a new login. If this step is skipped,
 ## Running locally
 - Run server demo locally using `npm run dev:server`
 - Run browser demo locally using `npm run dev:browser` 
+
