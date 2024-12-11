@@ -23,6 +23,7 @@ export async function login(
     | 'apple'
     | 'discord'
     | 'roblox'
+    | 'twitch'
     | 'email'
     | 'idp-f'
     | 'silent',
@@ -64,13 +65,15 @@ export async function login(
     redirect_uri: redirectUri,
     scope: 'openid',
     state,
-    ...(loginType != 'silent' ? {
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-      response_mode: 'query',
-      nonce,
-      device_id,
-    } : {}),
+    ...(loginType != 'silent'
+      ? {
+          code_challenge: codeChallenge,
+          code_challenge_method: 'S256',
+          response_mode: 'query',
+          nonce,
+          device_id,
+        }
+      : {}),
     prompt: loginType == 'silent' ? 'none' : 'login', // Use `none` to attempt silent authentication without prompting the user
   }
 
@@ -93,6 +96,9 @@ export async function login(
       break
     case 'roblox':
       query = { ...commonParams, login_hint: 'social:roblox' }
+      break
+    case 'twitch':
+      query = { ...commonParams, login_hint: 'social:twitch' }
       break
     case 'silent':
       if (targetEoa) {
@@ -123,19 +129,20 @@ export async function login(
 }
 
 export async function logout(params?: {
-  isLegacy?: boolean,
-  disableConsent?: boolean,
-  isSilent?: boolean,
-  postRedirectUri?: boolean,
+  isLegacy?: boolean
+  disableConsent?: boolean
+  isSilent?: boolean
+  postRedirectUri?: boolean
 }) {
-
   const urlParams = new URLSearchParams({
     ...(params?.disableConsent ? { disable_consent: 'true' } : {}),
-    ...(params?.postRedirectUri ? {
-      post_logout_redirect_uri: redirectUri,
-      id_token_hint: localStorage.getItem('id_token') || '',
-      client_id: clientId,
-    } : {}),
+    ...(params?.postRedirectUri
+      ? {
+          post_logout_redirect_uri: redirectUri,
+          id_token_hint: localStorage.getItem('id_token') || '',
+          client_id: clientId,
+        }
+      : {}),
   })
 
   localStorage.clear()
@@ -144,10 +151,13 @@ export async function logout(params?: {
     const navigator = new IframeNavigator()
     urlParams.append('response_mode', 'web_message')
     await navigator.navigate({
-      url: `${identityProviderUri}/session/end?${urlParams.toString()}`
+      url: `${identityProviderUri}/session/end?${urlParams.toString()}`,
     })
   } else {
-    openURL(`${identityProviderUri}/${params?.isLegacy ? "logout" : "session/end"}?${urlParams.toString()}`, 'redirect')
+    openURL(
+      `${identityProviderUri}/${params?.isLegacy ? 'logout' : 'session/end'}?${urlParams.toString()}`,
+      'redirect',
+    )
   }
 }
 
@@ -175,8 +185,8 @@ export async function refreshTokens(refreshToken: string) {
       const errorData = await response.json()
       throw new Error(
         errorData.error_description ||
-        errorData.error ||
-        'Failed to refresh tokens',
+          errorData.error ||
+          'Failed to refresh tokens',
       )
     }
 
