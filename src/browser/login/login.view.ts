@@ -26,6 +26,12 @@ document
     login('roblox')
   })
 
+document
+  .getElementById('login-button-twitch')!
+  .addEventListener('click', () => {
+    login('twitch')
+  })
+
 document.getElementById('login-button-email')!.addEventListener('click', () => {
   login('email')
 })
@@ -49,5 +55,5 @@ document
   })
 
 document.getElementById('silent-login')!.addEventListener('click', () => {
-    login('silent')
-  })
+  login('silent')
+})
