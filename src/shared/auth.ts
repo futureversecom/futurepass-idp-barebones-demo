@@ -24,6 +24,7 @@ export async function login(
     | 'discord'
     | 'roblox'
     | 'twitch'
+    | 'epic'
     | 'email'
     | 'idp-f'
     | 'silent',
@@ -99,6 +100,9 @@ export async function login(
       break
     case 'twitch':
       query = { ...commonParams, login_hint: 'social:twitch' }
+      break
+    case 'epic':
+      query = { ...commonParams, login_hint: 'social:epic' }
       break
     case 'silent':
       if (targetEoa) {
