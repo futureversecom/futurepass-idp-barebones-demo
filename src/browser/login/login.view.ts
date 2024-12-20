@@ -36,6 +36,10 @@ document.getElementById('login-button-email')!.addEventListener('click', () => {
   login('email')
 })
 
+document.getElementById('login-button-epic')!.addEventListener('click', () => {
+  login('epic')
+})
+
 document
   .getElementById('login-button-idp-front-end-login-general')!
   .addEventListener('click', () => {
