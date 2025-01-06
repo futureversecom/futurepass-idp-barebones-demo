@@ -86,6 +86,7 @@ async function loginWithMetamask() {
       login_hint,
       device_id,
       web3_connector_id: 'metamask',
+      // claims: JSON.stringify(claims),
     }
 
     const queryString = new URLSearchParams(params).toString()
