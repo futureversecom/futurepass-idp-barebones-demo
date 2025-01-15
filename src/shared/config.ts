@@ -8,18 +8,18 @@ function getOrThrowFromEnv(name: string): string {
   return value
 }
 
-export const clientId = getOrThrowFromEnv('CLIENT_ID')
+export const clientId = 'KqBH6ClFs9ef3xQ-2zT-l' // getOrThrowFromEnv('CLIENT_ID')
 export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
 export const browserRedirectUri = global.window
   ? global.window.origin + '/callback'
   : '' // not a browser environment so we ignore it
 
-export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
+export const identityProviderUri = 'https://login.passonline.red' //  getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`
 export const tokenEndpoint = `${identityProviderUri}/token`
 
-export const custodialSignerUrl = getOrThrowFromEnv('CUSTODIAL_SIGNER_URL')
+export const custodialSignerUrl = 'https://signer.passonline.red' // getOrThrowFromEnv('CUSTODIAL_SIGNER_URL')
 
 export const ethJsonRpcProviderUrl = getOrThrowFromEnv('ETH_JSON_RPC_URL')
 export const ethReceiverAddress = getOrThrowFromEnv('ETH_RECEIVER_ADDRESS')
