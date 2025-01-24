@@ -8,7 +8,7 @@ function getOrThrowFromEnv(name: string): string {
   return value
 }
 
-export const clientId = '' //getOrThrowFromEnv('CLIENT_ID')
+export const clientId = 'm9VEpyuAK9k9sUG-LTtdT' //getOrThrowFromEnv('CLIENT_ID')
 export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
 export const browserRedirectUri = global.window
   ? global.window.origin + '/callback'
@@ -24,7 +24,7 @@ export const custodialSignerUrl = 'https://signer.pass.online' // getOrThrowFrom
 export const ethJsonRpcProviderUrl =
   'https://mainnet.infura.io/v3/1e16cc5434fe45ae92b96e3e43f17a1b' // getOrThrowFromEnv('ETH_JSON_RPC_URL')
 export const ethReceiverAddress = getOrThrowFromEnv('ETH_RECEIVER_ADDRESS')
-export const ethChainId = 1 // getOrThrowFromEnv('ETH_CHAIN_ID')
+export const ethChainId = '1' // getOrThrowFromEnv('ETH_CHAIN_ID')
 
 // Used for mixpanel tracking
 export const mixpanelProjectToken = getOrThrowFromEnv('MIXPANEL_PROJECT_TOKEN')
