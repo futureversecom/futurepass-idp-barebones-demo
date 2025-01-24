@@ -8,29 +8,30 @@ function getOrThrowFromEnv(name: string): string {
   return value
 }
 
-export const clientId = getOrThrowFromEnv('CLIENT_ID')
+export const clientId = '' //getOrThrowFromEnv('CLIENT_ID')
 export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
 export const browserRedirectUri = global.window
   ? global.window.origin + '/callback'
   : '' // not a browser environment so we ignore it
 
-export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
+export const identityProviderUri = 'https://login.pass.online' // getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`
 export const tokenEndpoint = `${identityProviderUri}/token`
 
-export const custodialSignerUrl = getOrThrowFromEnv('CUSTODIAL_SIGNER_URL')
+export const custodialSignerUrl = 'https://signer.pass.online' // getOrThrowFromEnv('CUSTODIAL_SIGNER_URL')
 
-export const ethJsonRpcProviderUrl = getOrThrowFromEnv('ETH_JSON_RPC_URL')
+export const ethJsonRpcProviderUrl =
+  'https://mainnet.infura.io/v3/1e16cc5434fe45ae92b96e3e43f17a1b' // getOrThrowFromEnv('ETH_JSON_RPC_URL')
 export const ethReceiverAddress = getOrThrowFromEnv('ETH_RECEIVER_ADDRESS')
-export const ethChainId = getOrThrowFromEnv('ETH_CHAIN_ID')
+export const ethChainId = 1 // getOrThrowFromEnv('ETH_CHAIN_ID')
 
 // Used for mixpanel tracking
 export const mixpanelProjectToken = getOrThrowFromEnv('MIXPANEL_PROJECT_TOKEN')
 
-export const rootJsonRpcProviderUrl = getOrThrowFromEnv('ROOT_JSON_RPC_URL')
+export const rootJsonRpcProviderUrl = 'https://root.au.rootnet.live' // getOrThrowFromEnv('ROOT_JSON_RPC_URL')
 export const rootReceiverAddress = getOrThrowFromEnv('ROOT_RECEIVER_ADDRESS')
-export const rootChainId = getOrThrowFromEnv('ROOT_CHAIN_ID')
+export const rootChainId = '7672' // getOrThrowFromEnv('ROOT_CHAIN_ID')
 
 export const ERC20_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 value)',
