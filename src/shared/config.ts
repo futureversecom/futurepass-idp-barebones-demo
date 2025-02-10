@@ -8,13 +8,18 @@ function getOrThrowFromEnv(name: string): string {
   return value
 }
 
-export const clientId = getOrThrowFromEnv('CLIENT_ID')
-export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
+// export const clientId = getOrThrowFromEnv('CLIENT_ID')
+export const clientId = 'hA0Qc4RzqgdNA8HEUhaQU'
+
+// export const accessToken = getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
+export const accessToken = '52iSbKdFa5PWLFCFfyQ5U3jPOReP8mKSmc9SDboyV60'
+
 export const browserRedirectUri = global.window
   ? global.window.origin + '/callback'
   : '' // not a browser environment so we ignore it
 
-export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
+// export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
+export const identityProviderUri = 'https://readypass.passonline.cloud'
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`
 export const tokenEndpoint = `${identityProviderUri}/token`
