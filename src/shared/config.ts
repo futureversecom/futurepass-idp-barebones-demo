@@ -19,7 +19,7 @@ export const browserRedirectUri = global.window
   : '' // not a browser environment so we ignore it
 
 // export const identityProviderUri = getOrThrowFromEnv('IDENTITY_PROVIDER_URL')
-export const identityProviderUri = 'https://readypass.passonline.cloud'
+export const identityProviderUri = 'https://ready.passonline.cloud'
 
 export const authorizationEndpoint = `${identityProviderUri}/auth`
 export const tokenEndpoint = `${identityProviderUri}/token`
