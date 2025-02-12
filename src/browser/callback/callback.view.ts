@@ -10,25 +10,27 @@ import {
   processCallback,
   getDecodedIdToken,
   parseJwt,
+  identityProviderUri,
 } from 'shared'
 
 let decodedIdToken: DecodedIdToken
 let refreshToken: string
+let accessToken: string
 
 async function handleCallback() {
   const data = await processCallback(window.location.search)
-  if(!data) {
+  if (!data) {
     return
   }
   decodedIdToken = data.decodedIdToken
   refreshToken = data.refreshToken
+  accessToken = data.tokenEndpointResponse.access_token
 
   displayAuthorizationCode(data.code)
   displayTokenResponse(data.tokenEndpointResponse)
   displayDecodedIdToken(data.decodedIdToken)
 }
-handleCallback()
-.catch((err) => alert(err.message))
+handleCallback().catch((err) => alert(err.message))
 
 function displayAuthorizationCode(code: string) {
   if (code) {
@@ -199,30 +201,42 @@ document
     }
   })
 
-document.getElementById('legacy-logout')!.addEventListener('click', async () => {
-  await logout({ isLegacy: true })
-})
+document
+  .getElementById('legacy-logout')!
+  .addEventListener('click', async () => {
+    await logout({ isLegacy: true })
+  })
 
-document.getElementById('consent-logout')!.addEventListener('click', async () => {
-  await logout()
-})
+document
+  .getElementById('consent-logout')!
+  .addEventListener('click', async () => {
+    await logout()
+  })
 
-document.getElementById('no-consent-logout')!.addEventListener('click', async () => {
-  await logout({ disableConsent: true })
-})
+document
+  .getElementById('no-consent-logout')!
+  .addEventListener('click', async () => {
+    await logout({ disableConsent: true })
+  })
 
-document.getElementById('consent-logout-redirect')!.addEventListener('click', async () => {
-  await logout({ postRedirectUri: true })
-})
+document
+  .getElementById('consent-logout-redirect')!
+  .addEventListener('click', async () => {
+    await logout({ postRedirectUri: true })
+  })
 
-document.getElementById('no-consent-logout-redirect')!.addEventListener('click', async () => {
-  await logout({ disableConsent: true, postRedirectUri: true })
-})
+document
+  .getElementById('no-consent-logout-redirect')!
+  .addEventListener('click', async () => {
+    await logout({ disableConsent: true, postRedirectUri: true })
+  })
 
-document.getElementById('silent-logout')!.addEventListener('click', async () => {
-  await logout({ isSilent: true })
-  alert('Logout successful')
-})
+document
+  .getElementById('silent-logout')!
+  .addEventListener('click', async () => {
+    await logout({ isSilent: true })
+    alert('Logout successful')
+  })
 
 document
   .getElementById('refresh-tokens-button')!
@@ -232,6 +246,17 @@ document
     displayTokenResponse(refreshedTokens)
     displayDecodedIdToken(parseJwt(refreshedTokens.id_token))
   })
+
+document.getElementById('edit-profile')!.addEventListener('click', async () => {
+  if (!accessToken) {
+    alert('Access token not available')
+    return
+  }
+  window.open(
+    `${identityProviderUri}/profile-settings?accessToken=${accessToken}`,
+    '_blank',
+  )
+})
 
 document
   .getElementById('sign-message-callback-enabled')!
