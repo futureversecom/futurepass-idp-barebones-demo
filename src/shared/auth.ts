@@ -24,6 +24,7 @@ export async function login(
     | 'discord'
     | 'roblox'
     | 'twitch'
+    | 'barcaid'
     | 'email'
     | 'idp-f'
     | 'silent',
@@ -99,6 +100,9 @@ export async function login(
       break
     case 'twitch':
       query = { ...commonParams, login_hint: 'social:twitch' }
+      break
+    case 'barcaid':
+      query = { ...commonParams, login_hint: 'social:barcaid' }
       break
     case 'silent':
       if (targetEoa) {

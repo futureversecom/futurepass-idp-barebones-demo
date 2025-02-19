@@ -32,6 +32,10 @@ document
     login('twitch')
   })
 
+document.getElementById('login-button-barca')!.addEventListener('click', () => {
+  login('barcaid')
+})
+
 document.getElementById('login-button-email')!.addEventListener('click', () => {
   login('email')
 })
