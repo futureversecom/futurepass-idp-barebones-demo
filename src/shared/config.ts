@@ -8,7 +8,7 @@ function getOrThrowFromEnv(name: string): string {
   return value
 }
 
-export const clientId = 'A-MkJapobPP8ZNfm59Izp' // getOrThrowFromEnv('CLIENT_ID')
+export const clientId = '49Dsms6hBxpMamWb0mhY-' // getOrThrowFromEnv('CLIENT_ID')
 export const accessToken = 'vh3pkLHq4J5aJ437HSkWFxQd3ZPbG5mMljxB3qMCyZ8' // getOrThrowFromEnv('CLIENT_ACCESS_TOKEN')
 export const browserRedirectUri = global.window
   ? global.window.origin + '/callback'
