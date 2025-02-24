@@ -9,6 +9,7 @@ import {
   signRootTransaction,
   processCallback,
   getDecodedIdToken,
+  parseJwt,
 } from 'shared'
 
 let decodedIdToken: DecodedIdToken
@@ -229,6 +230,7 @@ document
     const refreshedTokens = await refreshTokens(refreshToken)
     refreshToken = refreshedTokens.refresh_token
     displayTokenResponse(refreshedTokens)
+    displayDecodedIdToken(parseJwt(refreshedTokens.id_token))
   })
 
 document
