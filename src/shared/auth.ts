@@ -32,14 +32,11 @@ export async function login(
 ) {
   console.log(`login with ${loginType} called`)
   let codeChallenge = ''
-  if (loginType != 'silent') {
-    const { codeVerifier, codeChallenge: _codeChallenge } =
-      await generateCodeVerifierAndChallenge()
-    codeChallenge = _codeChallenge
-    localStorage.setItem('code_verifier', codeVerifier)
-  } else {
-    localStorage.removeItem('code_verifier')
-  }
+
+  const { codeVerifier, codeChallenge: _codeChallenge } =
+    await generateCodeVerifierAndChallenge()
+  codeChallenge = _codeChallenge
+  localStorage.setItem('code_verifier', codeVerifier)
 
   const state = generateRandomString(16)
   localStorage.setItem('state', state)
@@ -65,15 +62,11 @@ export async function login(
     redirect_uri: redirectUri,
     scope: 'openid',
     state,
-    ...(loginType != 'silent'
-      ? {
-          code_challenge: codeChallenge,
-          code_challenge_method: 'S256',
-          response_mode: 'query',
-          nonce,
-          device_id,
-        }
-      : {}),
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+    response_mode: 'query',
+    nonce,
+    device_id,
     prompt: loginType == 'silent' ? 'none' : 'login', // Use `none` to attempt silent authentication without prompting the user
   }
 
